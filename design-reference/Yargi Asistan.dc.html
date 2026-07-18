@@ -1,0 +1,1046 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Serif:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --sans:'IBM Plex Sans',ui-sans-serif,system-ui,-apple-system,sans-serif;
+  --serif:'IBM Plex Serif',ui-serif,Georgia,serif;
+  --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,monospace;
+  --canvas:#F4EFE6; --surface:#FCFAF5; --surface-2:#EFE9DC; --surface-3:#E7DFCE;
+  --border:#E1D9C8; --border-strong:#CFC4AE;
+  --ink:#211C15; --ink-2:#5B5344; --ink-3:#8B8271;
+  --primary:#8A2A33; --primary-strong:#701F27; --primary-ink:#FCFAF5; --primary-soft:#F2E3E0; --primary-border:#E3C8C5;
+  --gold:#9A6D22; --gold-soft:#F0E5CD;
+  --green:#3F7A55; --green-soft:#E2EEE3;
+  --amber:#9C6A16; --amber-soft:#F5E8C9;
+  --danger:#B23A34; --danger-soft:#F5DFDB;
+  --shadow-sm:0 1px 2px rgba(45,32,12,.06),0 1px 1px rgba(45,32,12,.04);
+  --shadow-md:0 8px 26px -10px rgba(45,32,12,.20);
+  --shadow-lg:0 24px 64px -22px rgba(45,32,12,.30);
+}
+[data-theme="dark"]{
+  --canvas:#191612; --surface:#211D17; --surface-2:#282219; --surface-3:#302A1F;
+  --border:#39321F; --border-strong:#4B4230;
+  --ink:#EEE7D8; --ink-2:#B4AB98; --ink-3:#847B69;
+  --primary:#D07A7F; --primary-strong:#B85A60; --primary-ink:#1B1712; --primary-soft:#39241F; --primary-border:#5C3A37;
+  --gold:#D3A755; --gold-soft:#342B1A;
+  --green:#7DB78D; --green-soft:#22302A;
+  --amber:#D2A150; --amber-soft:#342B19;
+  --danger:#E08A84; --danger-soft:#38221E;
+  --shadow-sm:0 1px 2px rgba(0,0,0,.30);
+  --shadow-md:0 10px 30px -12px rgba(0,0,0,.55);
+  --shadow-lg:0 28px 70px -24px rgba(0,0,0,.65);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;height:100%}
+body{font-family:var(--sans);background:var(--canvas);color:var(--ink);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+a{color:var(--primary);text-decoration:none}
+a:hover{color:var(--primary-strong)}
+::selection{background:var(--primary-soft);color:var(--ink)}
+button{font-family:inherit}
+*::-webkit-scrollbar{width:11px;height:11px}
+*::-webkit-scrollbar-thumb{background:var(--border-strong);border-radius:20px;border:3px solid transparent;background-clip:content-box}
+*::-webkit-scrollbar-track{background:transparent}
+@keyframes om-caret{0%,100%{opacity:1}50%{opacity:0}}
+@keyframes om-rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes om-pulse{0%{box-shadow:0 0 0 0 rgba(63,122,85,.5)}70%{box-shadow:0 0 0 6px rgba(63,122,85,0)}100%{box-shadow:0 0 0 0 rgba(63,122,85,0)}}
+@keyframes om-spin{to{transform:rotate(360deg)}}
+@keyframes om-shimmer{0%{background-position:-320px 0}100%{background-position:320px 0}}
+@keyframes om-dot{0%,80%,100%{opacity:.25}40%{opacity:1}}
+</style>
+</helmet>
+
+<div data-theme="{{ theme }}" style="height:100vh;width:100%;display:flex;overflow:hidden;background:var(--canvas);color:var(--ink);font-family:var(--sans);{{ accentVars }}">
+
+  <sc-if value="{{ showBackdrop }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ closeSidebar }}" style="position:fixed;inset:0;background:rgba(20,14,4,.42);z-index:40"></div>
+  </sc-if>
+
+  <!-- ============ SIDEBAR ============ -->
+  <aside style="{{ sidebarStyle }}">
+    <div style="display:flex;align-items:center;gap:11px;padding:18px 18px 14px 18px">
+      <div style="width:34px;height:34px;border-radius:9px;background:var(--primary);display:flex;align-items:center;justify-content:center;flex:0 0 auto;box-shadow:var(--shadow-sm)">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="var(--primary-ink)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M7 21h10M12 6l-7 2 2.5 5a3 3 0 0 1-5 0L12 6zm0 0l7 2-2.5 5a3 3 0 0 0 5 0L12 6z"/></svg>
+      </div>
+      <div style="line-height:1.1">
+        <div style="font-family:var(--serif);font-weight:600;font-size:16.5px;letter-spacing:-.01em">Yargı Asistan</div>
+        <div style="font-size:10.5px;color:var(--ink-3);letter-spacing:.02em;margin-top:2px">Hukuki araştırma çalışma alanı</div>
+      </div>
+    </div>
+
+    <div style="padding:6px 12px 10px 12px">
+      <button onClick="{{ newChat }}" style="width:100%;display:flex;align-items:center;justify-content:center;gap:8px;padding:11px;border:1px solid var(--primary);background:var(--primary);color:var(--primary-ink);border-radius:10px;font-size:13.5px;font-weight:600;cursor:pointer;box-shadow:var(--shadow-sm)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+        Yeni sohbet
+      </button>
+    </div>
+
+    <nav style="padding:2px 12px;display:flex;flex-direction:column;gap:2px">
+      <button onClick="{{ goChat }}" style="{{ navChatStyle }}"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>Sohbet</span></button>
+      <button onClick="{{ goSearch }}" style="{{ navSearchStyle }}"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><span>Arama</span></button>
+      <button onClick="{{ goHistory }}" style="{{ navHistoryStyle }}"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v6h6M3.5 9a9 9 0 1 0 2-4.5L3 9"/><path d="M12 8v4l3 2"/></svg><span>Geçmiş</span></button>
+      <button onClick="{{ goBookmarks }}" style="{{ navBookmarksStyle }}"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg><span>Kayıtlı</span></button>
+    </nav>
+
+    <div style="padding:16px 18px 8px 18px;font-size:10.5px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3)">Sohbetler</div>
+    <div style="flex:1;overflow-y:auto;padding:0 12px 12px 12px">
+      <div style="font-size:10.5px;color:var(--ink-3);padding:8px 8px 4px 8px">Bugün</div>
+      <button onClick="{{ goChat }}" style="{{ convActiveStyle }}"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Kişisel veri ihlali içtihadı</span></button>
+      <div style="font-size:10.5px;color:var(--ink-3);padding:12px 8px 4px 8px">Dün</div>
+      <button style="{{ convStyle }}"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">KVKK idari para cezaları</span></button>
+      <button style="{{ convStyle }}"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">İşçi alacağında zamanaşımı</span></button>
+      <div style="font-size:10.5px;color:var(--ink-3);padding:12px 8px 4px 8px">Bu hafta</div>
+      <button style="{{ convStyle }}"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Rekabet Kurulu birleşme kararları</span></button>
+      <button style="{{ convStyle }}"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Kira tespiti emsal kararlar</span></button>
+    </div>
+
+    <div style="border-top:1px solid var(--border);padding:12px;display:flex;align-items:center;gap:10px">
+      <button onClick="{{ goSettings }}" title="Ayarlar" style="{{ profileBtnStyle }}">
+        <div style="width:32px;height:32px;border-radius:50%;background:var(--surface-3);border:1px solid var(--border-strong);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:var(--ink-2);flex:0 0 auto">SA</div>
+        <div style="line-height:1.15;overflow:hidden;flex:1">
+          <div style="font-size:12.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Av. Selin Aydın</div>
+          <div style="font-size:10.5px;color:var(--ink-3)">Ücretsiz plan</div>
+        </div>
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--ink-3)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="flex:0 0 auto"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-1.8-.3 1.6 1.6 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.6 1.6 0 0 0-1-1.5 1.6 1.6 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.6 1.6 0 0 0 .3-1.8 1.6 1.6 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.6 1.6 0 0 0 1.5-1 1.6 1.6 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.6 1.6 0 0 0 1.8.3H9a1.6 1.6 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.6 1.6 0 0 0 1 1.5 1.6 1.6 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0-.3 1.8V9a1.6 1.6 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.6 1.6 0 0 0-1.5 1z"/></svg>
+      </button>
+    </div>
+  </aside>
+
+  <!-- ============ MAIN ============ -->
+  <main style="flex:1;min-width:0;display:flex;flex-direction:column;position:relative">
+    <!-- header -->
+    <header style="height:56px;flex:0 0 auto;border-bottom:1px solid var(--border);background:var(--surface);display:flex;align-items:center;gap:12px;padding:0 16px;position:relative;z-index:10">
+      <button onClick="{{ toggleSidebar }}" style="{{ hamburgerStyle }}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg></button>
+      <div style="font-size:14px;font-weight:600;letter-spacing:-.01em">{{ viewTitle }}</div>
+      <div style="flex:1"></div>
+      <div style="display:flex;align-items:center;gap:7px;padding:6px 11px;border:1px solid var(--border);border-radius:20px;background:var(--surface);font-size:11.5px;color:var(--ink-2)">
+        <span style="{{ healthDotStyle }}"></span>
+        <span style="{{ healthTextStyle }}">{{ healthText }}</span>
+      </div>
+      <button onClick="{{ toggleTheme }}" title="Tema" style="width:36px;height:36px;border-radius:9px;border:1px solid var(--border);background:var(--surface);color:var(--ink-2);cursor:pointer;display:flex;align-items:center;justify-content:center">
+        <sc-if value="{{ isDark }}" hint-placeholder-val="{{ false }}"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></sc-if>
+        <sc-if value="{{ isLight }}" hint-placeholder-val="{{ true }}"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg></sc-if>
+      </button>
+    </header>
+
+    <!-- view router -->
+    <div style="flex:1;min-height:0;display:flex">
+      <div style="flex:1;min-width:0;display:flex;flex-direction:column">
+
+        <!-- ===== CHAT ===== -->
+        <sc-if value="{{ isChat }}" hint-placeholder-val="{{ true }}">
+        <div style="flex:1;min-height:0;display:flex;flex-direction:column">
+          <div data-chat-scroll="1" style="flex:1;overflow-y:auto">
+            <div style="max-width:760px;margin:0 auto;padding:24px 22px 8px 22px">
+
+              <sc-if value="{{ chatEmpty }}" hint-placeholder-val="{{ true }}">
+              <div style="min-height:52vh;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;gap:6px;padding:20px 0">
+                <div style="width:54px;height:54px;border-radius:14px;background:var(--primary-soft);border:1px solid var(--primary-border);display:flex;align-items:center;justify-content:center;margin-bottom:6px">
+                  <svg width="27" height="27" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M7 21h10M12 6l-7 2 2.5 5a3 3 0 0 1-5 0L12 6zm0 0l7 2-2.5 5a3 3 0 0 0 5 0L12 6z"/></svg>
+                </div>
+                <h1 style="font-family:var(--serif);font-weight:600;font-size:26px;margin:0;letter-spacing:-.02em">Ne araştıralım?</h1>
+                <p style="color:var(--ink-2);font-size:14px;margin:0;max-width:460px;line-height:1.5">Doğal dille sorun; asistan ilgili veritabanlarında arama yapıp kararları kaynak göstererek özetlesin.</p>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:20px;width:100%;max-width:560px">
+                  <button onClick="{{ starter0 }}" style="{{ starterStyle }}"><span style="font-size:13px;font-weight:600;color:var(--ink)">Yargıtay · kişisel veri</span><span style="font-size:11.5px;color:var(--ink-3);margin-top:3px">2024'te kişisel veri ihlali kararları</span></button>
+                  <button onClick="{{ starterA }}" style="{{ starterStyle }}"><span style="font-size:13px;font-weight:600;color:var(--ink)">KVKK · para cezaları</span><span style="font-size:11.5px;color:var(--ink-3);margin-top:3px">Veri güvenliği ihlali idari cezaları</span></button>
+                  <button onClick="{{ starterB }}" style="{{ starterStyle }}"><span style="font-size:13px;font-weight:600;color:var(--ink)">Rekabet · birleşme</span><span style="font-size:11.5px;color:var(--ink-3);margin-top:3px">Son devralma/birleşme kararları</span></button>
+                  <button onClick="{{ starterC }}" style="{{ starterStyle }}"><span style="font-size:13px;font-weight:600;color:var(--ink)">AYM · ifade özgürlüğü</span><span style="font-size:11.5px;color:var(--ink-3);margin-top:3px">Bireysel başvuru içtihadı</span></button>
+                </div>
+              </div>
+              </sc-if>
+
+              <sc-for list="{{ messages }}" as="m" hint-placeholder-count="0">
+                <div style="animation:om-rise .35s ease both;margin-bottom:22px">
+                  <sc-if value="{{ m.isUser }}" hint-placeholder-val="{{ false }}">
+                    <div style="display:flex;justify-content:flex-end">
+                      <div style="max-width:82%;background:var(--surface);border:1px solid var(--border);border-radius:16px 16px 4px 16px;padding:12px 15px;font-size:14.5px;line-height:1.5;box-shadow:var(--shadow-sm)">{{ m.content }}</div>
+                    </div>
+                  </sc-if>
+                  <sc-if value="{{ m.isAssistant }}" hint-placeholder-val="{{ false }}">
+                    <div style="display:flex;gap:12px">
+                      <div style="width:30px;height:30px;border-radius:8px;background:var(--primary);flex:0 0 auto;display:flex;align-items:center;justify-content:center;margin-top:2px">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--primary-ink)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M12 6l-7 2 2.5 5a3 3 0 0 1-5 0L12 6zm0 0l7 2-2.5 5a3 3 0 0 0 5 0L12 6z"/></svg>
+                      </div>
+                      <div style="flex:1;min-width:0;padding-top:2px">
+                        <!-- tool steps -->
+                        <sc-for list="{{ m.steps }}" as="st" hint-placeholder-count="0">
+                          <div style="border:1px solid var(--border);background:var(--surface);border-radius:11px;padding:10px 12px;margin-bottom:8px;box-shadow:var(--shadow-sm)">
+                            <div style="display:flex;align-items:center;gap:9px">
+                              <span style="width:8px;height:8px;border-radius:50%;flex:0 0 auto;background:{{ st.dotColor }}"></span>
+                              <span style="font-size:12px;font-weight:600;color:var(--ink)">{{ st.dbLabel }}</span>
+                              <span style="font-family:var(--mono);font-size:10.5px;color:var(--ink-3);background:var(--surface-2);padding:2px 6px;border-radius:5px">{{ st.tool }}</span>
+                              <span style="flex:1"></span>
+                              <sc-if value="{{ st.running }}" hint-placeholder-val="{{ false }}"><span style="width:14px;height:14px;border:2px solid var(--border-strong);border-top-color:var(--primary);border-radius:50%;animation:om-spin .7s linear infinite;display:inline-block"></span></sc-if>
+                              <sc-if value="{{ st.waiting }}" hint-placeholder-val="{{ false }}"><span style="display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;color:var(--amber);background:var(--amber-soft);padding:3px 8px;border-radius:20px"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l2.5 2.5"/></svg>{{ st.retry }} sn</span></sc-if>
+                              <sc-if value="{{ st.done }}" hint-placeholder-val="{{ false }}"><span style="font-size:11.5px;font-weight:600;color:var(--green);background:var(--green-soft);padding:3px 9px;border-radius:20px">{{ st.count }} sonuç</span></sc-if>
+                            </div>
+                            <div style="font-size:12px;color:var(--ink-2);margin-top:6px;padding-left:17px">{{ st.label }}</div>
+                            <sc-if value="{{ st.hasHits }}" hint-placeholder-val="{{ false }}">
+                              <div style="margin-top:9px;padding-left:17px;display:flex;flex-direction:column;gap:6px">
+                                <sc-for list="{{ st.hits }}" as="h" hint-placeholder-count="0">
+                                  <button onClick="{{ h.open }}" style="display:flex;align-items:center;gap:8px;text-align:left;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:7px 10px;cursor:pointer;color:var(--ink)">
+                                    <span style="width:6px;height:6px;border-radius:50%;flex:0 0 auto;background:{{ h.dbColor }}"></span>
+                                    <span style="font-size:11.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ h.court }}</span>
+                                    <span style="font-family:var(--mono);font-size:10.5px;color:var(--ink-3);white-space:nowrap">{{ h.refShort }}</span>
+                                    <span style="flex:1"></span>
+                                    <span style="font-family:var(--mono);font-size:10.5px;color:var(--ink-3);white-space:nowrap">{{ h.date }}</span>
+                                  </button>
+                                </sc-for>
+                              </div>
+                            </sc-if>
+                          </div>
+                        </sc-for>
+
+                        <!-- thinking -->
+                        <sc-if value="{{ m.thinking }}" hint-placeholder-val="{{ false }}">
+                          <div style="display:flex;align-items:center;gap:8px;color:var(--ink-3);font-size:13px;padding:4px 0 2px 2px">
+                            <span style="display:inline-flex;gap:3px"><span style="width:5px;height:5px;border-radius:50%;background:var(--ink-3);animation:om-dot 1.2s infinite 0s"></span><span style="width:5px;height:5px;border-radius:50%;background:var(--ink-3);animation:om-dot 1.2s infinite .2s"></span><span style="width:5px;height:5px;border-radius:50%;background:var(--ink-3);animation:om-dot 1.2s infinite .4s"></span></span>
+                            Yanıt hazırlanıyor
+                          </div>
+                        </sc-if>
+
+                        <!-- answer -->
+                        <sc-if value="{{ m.hasAnswer }}" hint-placeholder-val="{{ false }}">
+                          <div style="font-size:14.5px;line-height:1.62;color:var(--ink)">
+                            <sc-for list="{{ m.answer }}" as="para" hint-placeholder-count="0">
+                              <p style="margin:0 0 11px 0">
+                                <sc-for list="{{ para }}" as="seg" hint-placeholder-count="0">
+                                  <sc-if value="{{ seg.isText }}" hint-placeholder-val="{{ true }}"><span>{{ seg.v }}</span></sc-if>
+                                  <sc-if value="{{ seg.isCite }}" hint-placeholder-val="{{ false }}"><button onClick="{{ seg.open }}" title="Kaynağı aç" style="display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;padding:0 5px;margin:0 1px;vertical-align:2px;font-family:var(--mono);font-size:10.5px;font-weight:600;color:var(--primary);background:var(--primary-soft);border:1px solid var(--primary-border);border-radius:5px;cursor:pointer">{{ seg.n }}</button></sc-if>
+                                </sc-for>
+                              </p>
+                            </sc-for>
+                            <sc-if value="{{ m.streaming }}" hint-placeholder-val="{{ false }}"><span style="display:inline-block;width:8px;height:16px;background:var(--primary);vertical-align:-3px;animation:om-caret 1s steps(1) infinite;border-radius:1px"></span></sc-if>
+                          </div>
+                        </sc-if>
+
+                        <!-- citation cards -->
+                        <sc-if value="{{ m.hasCites }}" hint-placeholder-val="{{ false }}">
+                          <div style="margin-top:14px">
+                            <div style="font-size:10.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);margin-bottom:8px">Kaynaklar</div>
+                            <div style="display:flex;flex-direction:column;gap:8px">
+                              <sc-for list="{{ m.cites }}" as="c" hint-placeholder-count="0">
+                                <button onClick="{{ c.open }}" style="display:flex;gap:11px;text-align:left;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:11px 13px;cursor:pointer;color:var(--ink);box-shadow:var(--shadow-sm)">
+                                  <span style="font-family:var(--mono);font-size:11px;font-weight:600;color:var(--primary);background:var(--primary-soft);border:1px solid var(--primary-border);border-radius:6px;width:22px;height:22px;display:flex;align-items:center;justify-content:center;flex:0 0 auto;margin-top:1px">{{ c.marker }}</span>
+                                  <span style="min-width:0;flex:1">
+                                    <span style="display:flex;align-items:center;gap:7px;margin-bottom:3px">
+                                      <span style="width:7px;height:7px;border-radius:50%;flex:0 0 auto;background:{{ c.dbColor }}"></span>
+                                      <span style="font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ c.court }}</span>
+                                    </span>
+                                    <span style="display:block;font-family:var(--mono);font-size:11px;color:var(--ink-2)">{{ c.ref }} · {{ c.date }}</span>
+                                    <sc-if value="{{ c.hasSnippet }}" hint-placeholder-val="{{ false }}"><span style="display:block;font-size:12.5px;color:var(--ink-2);margin-top:6px;line-height:1.45">{{ c.snippet }}</span></sc-if>
+                                  </span>
+                                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--ink-3)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="flex:0 0 auto;margin-top:2px"><path d="M9 18l6-6-6-6"/></svg>
+                                </button>
+                              </sc-for>
+                            </div>
+                          </div>
+                        </sc-if>
+
+                        <!-- message actions -->
+                        <sc-if value="{{ m.finalized }}" hint-placeholder-val="{{ false }}">
+                          <div style="display:flex;align-items:center;gap:4px;margin-top:12px">
+                            <button style="{{ ghostBtnStyle }}"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h8"/></svg>Kopyala</button>
+                            <button style="{{ ghostBtnStyle }}"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v13m0 0l4-4m-4 4l-4-4M5 21h14"/></svg>Dışa aktar</button>
+                          </div>
+                        </sc-if>
+                      </div>
+                    </div>
+                  </sc-if>
+                </div>
+              </sc-for>
+
+              <sc-if value="{{ hasMessages }}" hint-placeholder-val="{{ false }}">
+                <div style="text-align:center;font-size:11px;color:var(--ink-3);padding:2px 0 10px 0;line-height:1.5">Yapay zekâ hukuki tavsiye vermez; kararları asıl kaynağından doğrulayın.</div>
+              </sc-if>
+            </div>
+          </div>
+
+          <!-- composer -->
+          <div style="flex:0 0 auto;padding:10px 22px 18px 22px;background:linear-gradient(to top,var(--canvas) 55%,transparent)">
+            <div style="max-width:760px;margin:0 auto">
+              <div style="display:flex;align-items:flex-end;gap:9px;background:var(--surface);border:1px solid var(--border-strong);border-radius:16px;padding:9px 9px 9px 15px;box-shadow:var(--shadow-md)">
+                <textarea value="{{ input }}" onInput="{{ onInput }}" onKeyDown="{{ onKeyDown }}" rows="1" placeholder="Hukuki bir soru sorun…  (ör. 2024'te Yargıtay'ın kişisel veri ihlali kararları)" style="flex:1;border:none;outline:none;resize:none;background:transparent;color:var(--ink);font-family:var(--sans);font-size:14.5px;line-height:1.5;max-height:150px;padding:6px 0"></textarea>
+                <button onClick="{{ send }}" style="{{ sendBtnStyle }}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+              </div>
+              <div style="text-align:center;font-size:10.5px;color:var(--ink-3);margin-top:8px">Enter ile gönder · Shift+Enter yeni satır · Tüm veriler örnektir (demo)</div>
+            </div>
+          </div>
+        </div>
+        </sc-if>
+
+        <!-- ===== SEARCH ===== -->
+        <sc-if value="{{ isSearch }}" hint-placeholder-val="{{ false }}">
+        <div style="flex:1;overflow-y:auto">
+          <div style="max-width:980px;margin:0 auto;padding:26px 22px 44px 22px">
+
+            <sc-if value="{{ isPicker }}" hint-placeholder-val="{{ true }}">
+              <div style="margin-bottom:20px">
+                <h1 style="font-family:var(--serif);font-weight:600;font-size:24px;margin:0 0 5px 0;letter-spacing:-.02em">Yapılandırılmış arama</h1>
+                <p style="color:var(--ink-2);font-size:13.5px;margin:0;line-height:1.5">Bir veritabanı seçin ve mahkeme, daire, tarih ve esas/karar numarasına göre doğrudan arayın. Formlar canlı araç şemalarından üretilir.</p>
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px">
+                <sc-for list="{{ databases }}" as="d" hint-placeholder-count="12">
+                  <button onClick="{{ d.select }}" style="{{ d.cardStyle }}">
+                    <div style="display:flex;align-items:center;gap:9px;margin-bottom:8px">
+                      <span style="width:10px;height:10px;border-radius:3px;flex:0 0 auto;background:{{ d.color }}"></span>
+                      <span style="font-size:14px;font-weight:600;color:var(--ink)">{{ d.name }}</span>
+                      <sc-if value="{{ d.hasSub }}" hint-placeholder-val="{{ false }}"><span style="font-family:var(--mono);font-size:10px;color:var(--ink-3);background:var(--surface-2);padding:2px 6px;border-radius:5px">{{ d.sub }}</span></sc-if>
+                    </div>
+                    <div style="font-size:12.5px;color:var(--ink-2);line-height:1.45;flex:1">{{ d.desc }}</div>
+                    <sc-if value="{{ d.gated }}" hint-placeholder-val="{{ false }}">
+                      <div style="margin-top:11px;display:inline-flex;align-items:center;gap:6px;font-size:11px;color:var(--ink-3)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>Sunucuda yapılandırılmamış</div>
+                    </sc-if>
+                    <sc-if value="{{ d.gated }}" hint-placeholder-val="{{ true }}"></sc-if>
+                  </button>
+                </sc-for>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ formOpen }}" hint-placeholder-val="{{ false }}">
+              <button onClick="{{ backDb }}" style="display:inline-flex;align-items:center;gap:6px;background:transparent;border:none;color:var(--ink-2);font-size:12.5px;font-weight:500;cursor:pointer;padding:4px 0;margin-bottom:14px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M15 18l-6-6 6-6"/></svg>Tüm veritabanları</button>
+              <div style="display:flex;align-items:center;gap:11px;margin-bottom:18px">
+                <span style="width:13px;height:13px;border-radius:4px;flex:0 0 auto;background:{{ searchColor }}"></span>
+                <div>
+                  <h1 style="font-family:var(--serif);font-weight:600;font-size:22px;margin:0;letter-spacing:-.01em">{{ searchName }}</h1>
+                  <p style="color:var(--ink-3);font-size:12.5px;margin:2px 0 0 0">{{ searchDesc }}</p>
+                </div>
+              </div>
+
+              <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:20px;box-shadow:var(--shadow-sm)">
+                <sc-if value="{{ isBedesten }}" hint-placeholder-val="{{ true }}">
+                  <div style="margin-bottom:18px">
+                    <div style="font-size:12px;font-weight:600;color:var(--ink-2);margin-bottom:9px">Mahkeme türü</div>
+                    <div style="display:flex;flex-wrap:wrap;gap:8px">
+                      <sc-for list="{{ courtList }}" as="c" hint-placeholder-count="5">
+                        <button onClick="{{ c.toggle }}" style="{{ c.style }}">{{ c.label }}</button>
+                      </sc-for>
+                    </div>
+                  </div>
+                  <div style="display:grid;grid-template-columns:1fr;gap:16px;margin-bottom:18px">
+                    <div>
+                      <div style="font-size:12px;font-weight:600;color:var(--ink-2);margin-bottom:7px">Daire / Kurul <span style="color:var(--ink-3);font-weight:400">· 81 birim</span></div>
+                      <div style="display:flex;align-items:center;gap:8px;border:1px solid var(--border-strong);border-radius:10px;padding:9px 12px;background:var(--canvas)">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--ink-3)" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+                        <input placeholder="Daire ara… (ör. Yargıtay 9. Hukuk Dairesi)" style="border:none;outline:none;background:transparent;color:var(--ink);font-family:var(--sans);font-size:13.5px;width:100%"/>
+                      </div>
+                    </div>
+                  </div>
+                  <div style="margin-bottom:18px">
+                    <div style="font-size:12px;font-weight:600;color:var(--ink-2);margin-bottom:7px">Aranan ifade</div>
+                    <input value="{{ phrase }}" onInput="{{ onPhrase }}" placeholder="Anahtar kelime veya ifade" style="width:100%;border:1px solid var(--border-strong);border-radius:10px;padding:10px 12px;background:var(--canvas);color:var(--ink);font-family:var(--sans);font-size:13.5px;outline:none"/>
+                    <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:9px;align-items:center">
+                      <sc-for list="{{ opChips }}" as="op" hint-placeholder-count="6">
+                        <span style="font-family:var(--mono);font-size:11px;color:var(--ink-2);background:var(--surface-2);border:1px solid var(--border);padding:3px 8px;border-radius:6px">{{ op }}</span>
+                      </sc-for>
+                      <span style="font-size:11px;color:var(--ink-3);margin-left:2px">joker/regex desteklenmez</span>
+                    </div>
+                  </div>
+                  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px">
+                    <div>
+                      <div style="font-size:12px;font-weight:600;color:var(--ink-2);margin-bottom:7px">Başlangıç tarihi</div>
+                      <input value="{{ dateFrom }}" onInput="{{ onFrom }}" placeholder="GG.AA.YYYY" style="width:100%;border:1px solid var(--border-strong);border-radius:10px;padding:10px 12px;background:var(--canvas);color:var(--ink);font-family:var(--mono);font-size:13px;outline:none"/>
+                    </div>
+                    <div>
+                      <div style="font-size:12px;font-weight:600;color:var(--ink-2);margin-bottom:7px">Bitiş tarihi</div>
+                      <input value="{{ dateTo }}" onInput="{{ onTo }}" placeholder="GG.AA.YYYY" style="width:100%;border:1px solid var(--border-strong);border-radius:10px;padding:10px 12px;background:var(--canvas);color:var(--ink);font-family:var(--mono);font-size:13px;outline:none"/>
+                    </div>
+                  </div>
+                </sc-if>
+
+                <sc-if value="{{ isGenericForm }}" hint-placeholder-val="{{ false }}">
+                  <div style="display:inline-flex;align-items:center;gap:7px;font-size:11.5px;color:var(--ink-3);background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:6px 10px;margin-bottom:16px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h10"/></svg>Form, aracın canlı JSON şemasından üretildi</div>
+                  <div style="margin-bottom:18px">
+                    <div style="font-size:12px;font-weight:600;color:var(--ink-2);margin-bottom:7px">Aranan ifade</div>
+                    <input value="{{ phrase }}" onInput="{{ onPhrase }}" placeholder="Anahtar kelime veya ifade" style="width:100%;border:1px solid var(--border-strong);border-radius:10px;padding:10px 12px;background:var(--canvas);color:var(--ink);font-family:var(--sans);font-size:13.5px;outline:none"/>
+                  </div>
+                  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px">
+                    <div>
+                      <div style="font-size:12px;font-weight:600;color:var(--ink-2);margin-bottom:7px">Başlangıç tarihi</div>
+                      <input value="{{ dateFrom }}" onInput="{{ onFrom }}" placeholder="GG.AA.YYYY" style="width:100%;border:1px solid var(--border-strong);border-radius:10px;padding:10px 12px;background:var(--canvas);color:var(--ink);font-family:var(--mono);font-size:13px;outline:none"/>
+                    </div>
+                    <div>
+                      <div style="font-size:12px;font-weight:600;color:var(--ink-2);margin-bottom:7px">Bitiş tarihi</div>
+                      <input value="{{ dateTo }}" onInput="{{ onTo }}" placeholder="GG.AA.YYYY" style="width:100%;border:1px solid var(--border-strong);border-radius:10px;padding:10px 12px;background:var(--canvas);color:var(--ink);font-family:var(--mono);font-size:13px;outline:none"/>
+                    </div>
+                  </div>
+                </sc-if>
+
+                <div style="display:flex;gap:10px;align-items:center">
+                  <button onClick="{{ runSearch }}" style="display:inline-flex;align-items:center;gap:8px;background:var(--primary);color:var(--primary-ink);border:none;border-radius:10px;padding:11px 20px;font-size:13.5px;font-weight:600;cursor:pointer"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>Ara</button>
+                  <button style="background:transparent;border:1px solid var(--border-strong);border-radius:10px;padding:11px 16px;font-size:13.5px;font-weight:500;color:var(--ink-2);cursor:pointer">Temizle</button>
+                </div>
+              </div>
+
+              <sc-if value="{{ searchRan }}" hint-placeholder-val="{{ false }}">
+                <div style="margin-top:24px">
+                  <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+                    <div style="font-size:13px;font-weight:600;color:var(--ink)">{{ searchCountLabel }}</div>
+                    <div style="flex:1"></div>
+                    <button onClick="{{ continueInChat }}" style="display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--primary);background:var(--primary-soft);border:1px solid var(--primary-border);border-radius:8px;padding:7px 12px;cursor:pointer"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Sohbette devam et</button>
+                  </div>
+                  <div style="border:1px solid var(--border);border-radius:14px;overflow:hidden;background:var(--surface)">
+                    <sc-for list="{{ searchRows }}" as="r" hint-placeholder-count="6">
+                      <button onClick="{{ r.open }}" style="display:flex;align-items:center;gap:14px;width:100%;text-align:left;padding:13px 16px;border:none;border-bottom:1px solid var(--border);background:transparent;cursor:pointer;color:var(--ink)">
+                        <span style="width:8px;height:8px;border-radius:50%;flex:0 0 auto;background:{{ r.dbColor }}"></span>
+                        <span style="min-width:0;flex:1">
+                          <span style="display:block;font-size:13.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ r.court }}</span>
+                          <span style="display:block;font-size:12px;color:var(--ink-3);margin-top:2px">{{ r.konu }}</span>
+                        </span>
+                        <span style="font-family:var(--mono);font-size:11.5px;color:var(--ink-2);white-space:nowrap;text-align:right">{{ r.ref }}</span>
+                        <span style="font-family:var(--mono);font-size:11.5px;color:var(--ink-3);white-space:nowrap;width:82px;text-align:right">{{ r.date }}</span>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--ink-3)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="flex:0 0 auto"><path d="M9 18l6-6-6-6"/></svg>
+                      </button>
+                    </sc-for>
+                    <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px">
+                      <span style="font-size:11.5px;color:var(--ink-3)">Metadata-only sonuçlar · özet için karara girin</span>
+                      <button style="display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;color:var(--ink);background:var(--surface);border:1px solid var(--border-strong);border-radius:8px;padding:7px 13px;cursor:pointer">Sonraki sayfa<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M9 18l6-6-6-6"/></svg></button>
+                    </div>
+                  </div>
+                </div>
+              </sc-if>
+            </sc-if>
+          </div>
+        </div>
+        </sc-if>
+        <!-- ===== HISTORY ===== -->
+        <sc-if value="{{ isHistory }}" hint-placeholder-val="{{ false }}">
+        <div style="flex:1;overflow-y:auto">
+          <div style="max-width:900px;margin:0 auto;padding:26px 22px 44px 22px">
+            <h1 style="font-family:var(--serif);font-weight:600;font-size:24px;margin:0 0 4px 0;letter-spacing:-.02em">Geçmiş</h1>
+            <p style="color:var(--ink-2);font-size:13.5px;margin:0 0 18px 0">Yerel olarak saklanan aramalar, sohbetler ve görüntülenen kararlar. Sonuçlar anlık görünür; güncel veri için yeniden çalıştırın.</p>
+
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+              <div style="display:flex;gap:4px;background:var(--surface-2);border-radius:11px;padding:4px">
+                <button onClick="{{ setTabSearches }}" style="{{ tabSearchesStyle }}">Aramalar</button>
+                <button onClick="{{ setTabChats }}" style="{{ tabChatsStyle }}">Sohbetler</button>
+                <button onClick="{{ setTabDocs }}" style="{{ tabDocsStyle }}">Görüntülenen</button>
+              </div>
+              <div style="flex:1"></div>
+              <div style="display:flex;align-items:center;gap:8px;border:1px solid var(--border-strong);border-radius:9px;padding:8px 12px;background:var(--surface);min-width:180px">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--ink-3)" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+                <input placeholder="Geçmişte ara…" style="border:none;outline:none;background:transparent;color:var(--ink);font-family:var(--sans);font-size:13px;width:100%"/>
+              </div>
+            </div>
+
+            <sc-if value="{{ isTabSearches }}" hint-placeholder-val="{{ true }}">
+              <div style="display:flex;flex-direction:column;gap:9px">
+                <sc-for list="{{ histSearches }}" as="x" hint-placeholder-count="6">
+                  <div style="display:flex;align-items:center;gap:14px;border:1px solid var(--border);border-radius:12px;padding:13px 16px;background:var(--surface);box-shadow:var(--shadow-sm)">
+                    <span style="width:8px;height:8px;border-radius:50%;flex:0 0 auto;background:{{ x.dbColor }}"></span>
+                    <div style="min-width:0;flex:1">
+                      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                        <span style="font-size:14px;font-weight:600;color:var(--ink)">«{{ x.q }}»</span>
+                        <span style="font-size:11px;color:var(--ink-3)">{{ x.dbName }}</span>
+                      </div>
+                      <div style="font-size:11.5px;color:var(--ink-3);margin-top:3px">{{ x.time }} · anlık görüntü {{ x.snap }}</div>
+                    </div>
+                    <span style="font-size:11.5px;font-weight:600;padding:4px 10px;border-radius:20px;white-space:nowrap;color:{{ x.statusFg }};background:{{ x.statusBg }}">{{ x.statusLabel }}</span>
+                    <button onClick="{{ x.rerun }}" style="display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;color:var(--ink);background:var(--surface);border:1px solid var(--border-strong);border-radius:8px;padding:6px 11px;cursor:pointer;white-space:nowrap"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v6h6M3.5 9a9 9 0 1 0 2-4.5L3 9"/></svg>Yeniden</button>
+                    <button style="font-size:12px;font-weight:500;color:var(--ink-2);background:transparent;border:1px solid var(--border);border-radius:8px;padding:6px 11px;cursor:pointer;white-space:nowrap">Anlık görüntü</button>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ isTabChats }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;flex-direction:column;gap:9px">
+                <sc-for list="{{ histChats }}" as="x" hint-placeholder-count="4">
+                  <button onClick="{{ x.open }}" style="display:flex;gap:13px;text-align:left;border:1px solid var(--border);border-radius:12px;padding:14px 16px;background:var(--surface);cursor:pointer;color:var(--ink);box-shadow:var(--shadow-sm)">
+                    <div style="width:34px;height:34px;border-radius:9px;background:var(--primary-soft);border:1px solid var(--primary-border);flex:0 0 auto;display:flex;align-items:center;justify-content:center"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
+                    <div style="min-width:0;flex:1">
+                      <div style="display:flex;align-items:center;gap:8px">
+                        <span style="font-size:14px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ x.title }}</span>
+                        <span style="flex:1"></span>
+                        <span style="font-size:11px;color:var(--ink-3);white-space:nowrap">{{ x.time }}</span>
+                      </div>
+                      <div style="font-size:12.5px;color:var(--ink-2);margin-top:4px;line-height:1.45;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical">{{ x.preview }}</div>
+                    </div>
+                  </button>
+                </sc-for>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ isTabDocs }}" hint-placeholder-val="{{ false }}">
+              <div style="border:1px solid var(--border);border-radius:14px;overflow:hidden;background:var(--surface)">
+                <sc-for list="{{ histDocs }}" as="x" hint-placeholder-count="4">
+                  <button onClick="{{ x.open }}" style="display:flex;align-items:center;gap:14px;width:100%;text-align:left;padding:13px 16px;border:none;border-bottom:1px solid var(--border);background:transparent;cursor:pointer;color:var(--ink)">
+                    <span style="width:8px;height:8px;border-radius:50%;flex:0 0 auto;background:{{ x.dbColor }}"></span>
+                    <span style="min-width:0;flex:1">
+                      <span style="display:block;font-size:13.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ x.court }}</span>
+                      <span style="display:block;font-family:var(--mono);font-size:11.5px;color:var(--ink-3);margin-top:2px">{{ x.ref }} · {{ x.date }}</span>
+                    </span>
+                    <span style="font-size:11.5px;color:var(--ink-3);white-space:nowrap">{{ x.time }}</span>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--ink-3)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="flex:0 0 auto"><path d="M9 18l6-6-6-6"/></svg>
+                  </button>
+                </sc-for>
+              </div>
+            </sc-if>
+          </div>
+        </div>
+        </sc-if>
+        <!-- ===== BOOKMARKS ===== -->
+        <sc-if value="{{ isBookmarks }}" hint-placeholder-val="{{ false }}">
+        <div style="flex:1;overflow-y:auto">
+          <div style="max-width:820px;margin:0 auto;padding:26px 22px 44px 22px">
+            <h1 style="font-family:var(--serif);font-weight:600;font-size:24px;margin:0 0 4px 0;letter-spacing:-.02em">Kayıtlı kararlar</h1>
+            <p style="color:var(--ink-2);font-size:13.5px;margin:0 0 16px 0">Not ve etiketlerle kaydettiğiniz kararlar. Etikete göre filtreleyin.</p>
+            <div style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:18px">
+              <sc-for list="{{ allTags }}" as="t" hint-placeholder-count="6">
+                <span style="font-size:12px;font-weight:500;color:var(--ink-2);background:var(--surface);border:1px solid var(--border-strong);border-radius:20px;padding:6px 13px;cursor:pointer">{{ t }}</span>
+              </sc-for>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:11px">
+              <sc-for list="{{ bookmarks }}" as="b" hint-placeholder-count="3">
+                <div style="border:1px solid var(--border);border-radius:14px;background:var(--surface);padding:15px 17px;box-shadow:var(--shadow-sm)">
+                  <button onClick="{{ b.open }}" style="display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:transparent;border:none;cursor:pointer;color:var(--ink);padding:0">
+                    <span style="width:9px;height:9px;border-radius:50%;flex:0 0 auto;background:{{ b.dbColor }}"></span>
+                    <span style="flex:1;min-width:0">
+                      <span style="display:block;font-size:14.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ b.court }}</span>
+                      <span style="display:block;font-family:var(--mono);font-size:11.5px;color:var(--ink-3);margin-top:2px">{{ b.ref }} · {{ b.date }}</span>
+                    </span>
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="var(--primary)" stroke="var(--primary)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="flex:0 0 auto"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+                  </button>
+                  <div style="font-size:13px;color:var(--ink-2);line-height:1.5;margin:11px 0 10px 19px;padding-left:11px;border-left:2px solid var(--border-strong)">{{ b.note }}</div>
+                  <div style="display:flex;flex-wrap:wrap;gap:6px;margin-left:19px">
+                    <sc-for list="{{ b.tags }}" as="tg" hint-placeholder-count="2">
+                      <span style="font-family:var(--mono);font-size:10.5px;color:var(--ink-2);background:var(--surface-2);border:1px solid var(--border);padding:3px 8px;border-radius:6px">#{{ tg }}</span>
+                    </sc-for>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+        </sc-if>
+        <!-- ===== SETTINGS ===== -->
+        <sc-if value="{{ isSettings }}" hint-placeholder-val="{{ false }}">
+        <div style="flex:1;overflow-y:auto">
+          <div style="max-width:720px;margin:0 auto;padding:26px 22px 48px 22px">
+            <h1 style="font-family:var(--serif);font-weight:600;font-size:24px;margin:0 0 20px 0;letter-spacing:-.02em">Ayarlar</h1>
+
+            <div style="border:1px solid var(--border);border-radius:14px;background:var(--surface);padding:18px 20px;margin-bottom:14px;box-shadow:var(--shadow-sm)">
+              <div style="font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);margin-bottom:14px">Profil</div>
+              <div style="display:flex;align-items:center;gap:14px">
+                <div style="width:48px;height:48px;border-radius:50%;background:var(--surface-3);border:1px solid var(--border-strong);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:600;color:var(--ink-2);flex:0 0 auto">SA</div>
+                <div style="flex:1;min-width:0">
+                  <div style="font-size:15px;font-weight:600">Av. Selin Aydın</div>
+                  <div style="font-size:12.5px;color:var(--ink-3)">selin.aydin@ornek.av.tr</div>
+                </div>
+                <button style="font-size:12.5px;font-weight:500;color:var(--ink);background:var(--surface);border:1px solid var(--border-strong);border-radius:9px;padding:8px 14px;cursor:pointer">Düzenle</button>
+              </div>
+            </div>
+
+            <div style="border:1px solid var(--border);border-radius:14px;background:var(--surface);padding:18px 20px;margin-bottom:14px;box-shadow:var(--shadow-sm)">
+              <div style="font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);margin-bottom:14px">Aktif oturumlar</div>
+              <div style="display:flex;flex-direction:column;gap:11px">
+                <sc-for list="{{ sessions }}" as="x" hint-placeholder-count="3">
+                  <div style="display:flex;align-items:center;gap:12px">
+                    <span style="width:9px;height:9px;border-radius:50%;flex:0 0 auto;background:{{ x.dotColor }}"></span>
+                    <div style="flex:1;min-width:0">
+                      <div style="font-size:13.5px;font-weight:500">{{ x.device }}</div>
+                      <div style="font-size:11.5px;color:var(--ink-3)">{{ x.loc }} · {{ x.last }}</div>
+                    </div>
+                    <sc-if value="{{ x.current }}" hint-placeholder-val="{{ true }}"><span style="font-size:11px;font-weight:600;color:var(--green);background:var(--green-soft);padding:4px 10px;border-radius:20px">Bu cihaz</span></sc-if>
+                    <sc-if value="{{ x.notCurrent }}" hint-placeholder-val="{{ false }}"><button style="font-size:11.5px;font-weight:500;color:var(--ink-2);background:transparent;border:1px solid var(--border);border-radius:8px;padding:6px 11px;cursor:pointer">Oturumu kapat</button></sc-if>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
+              <div style="border:1px solid var(--border);border-radius:14px;background:var(--surface);padding:18px 20px;box-shadow:var(--shadow-sm)">
+                <div style="font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);margin-bottom:12px">Dil</div>
+                <div style="display:flex;gap:4px;background:var(--surface-2);border-radius:10px;padding:4px">
+                  <button onClick="{{ setLangTr }}" style="{{ langTrStyle }}">Türkçe</button>
+                  <button onClick="{{ setLangEn }}" style="{{ langEnStyle }}">English</button>
+                </div>
+              </div>
+              <div style="border:1px solid var(--border);border-radius:14px;background:var(--surface);padding:18px 20px;box-shadow:var(--shadow-sm)">
+                <div style="font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);margin-bottom:12px">Tema</div>
+                <div style="display:flex;gap:4px;background:var(--surface-2);border-radius:10px;padding:4px">
+                  <button onClick="{{ setThemeLight }}" style="{{ themeLightStyle }}">Açık</button>
+                  <button onClick="{{ setThemeDark }}" style="{{ themeDarkStyle }}">Koyu</button>
+                </div>
+              </div>
+            </div>
+
+            <div style="border:1px solid var(--border);border-radius:14px;background:var(--surface);padding:18px 20px;margin-bottom:14px;box-shadow:var(--shadow-sm)">
+              <div style="font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);margin-bottom:14px">Model ve günlük kullanım</div>
+              <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:18px">
+                <sc-for list="{{ models }}" as="m" hint-placeholder-count="3">
+                  <button onClick="{{ m.select }}" style="{{ m.style }}">
+                    <span style="width:18px;height:18px;border-radius:50%;flex:0 0 auto;border:2px solid {{ m.active ? 'var(--primary)' : 'var(--border-strong)' }};display:flex;align-items:center;justify-content:center"><sc-if value="{{ m.active }}" hint-placeholder-val="{{ false }}"><span style="width:8px;height:8px;border-radius:50%;background:var(--primary)"></span></sc-if></span>
+                    <span style="flex:1"><span style="display:block;font-size:13.5px;font-weight:600;color:var(--ink)">{{ m.name }}</span><span style="display:block;font-size:11.5px;color:var(--ink-3)">{{ m.note }}</span></span>
+                  </button>
+                </sc-for>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:14px">
+                <sc-for list="{{ usage }}" as="u" hint-placeholder-count="3">
+                  <div>
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+                      <span style="font-size:12.5px;color:var(--ink-2)">{{ u.label }}</span>
+                      <span style="font-family:var(--mono);font-size:11.5px;color:var(--ink-3)">{{ u.disp }}</span>
+                    </div>
+                    <div style="height:7px;border-radius:20px;background:var(--surface-2);overflow:hidden"><div style="{{ u.barStyle }}"></div></div>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+
+            <div style="border:1px solid var(--border);border-radius:14px;background:var(--surface);padding:18px 20px;box-shadow:var(--shadow-sm)">
+              <div style="font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);margin-bottom:6px">Veri denetimi</div>
+              <p style="font-size:12px;color:var(--ink-3);margin:0 0 14px 0;line-height:1.5">KVKK kapsamında verileriniz üzerinde tam denetime sahipsiniz. Sorgu geçmişiniz gizli tutulur.</p>
+              <div style="display:flex;flex-wrap:wrap;gap:8px">
+                <button style="display:inline-flex;align-items:center;gap:7px;font-size:12.5px;font-weight:500;color:var(--ink);background:var(--surface);border:1px solid var(--border-strong);border-radius:9px;padding:9px 14px;cursor:pointer"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v13m0 0l4-4m-4 4l-4-4M5 21h14"/></svg>Tüm verilerimi indir</button>
+                <button style="display:inline-flex;align-items:center;gap:7px;font-size:12.5px;font-weight:500;color:var(--ink-2);background:var(--surface);border:1px solid var(--border-strong);border-radius:9px;padding:9px 14px;cursor:pointer">Geçmişi sil</button>
+                <button style="display:inline-flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;color:var(--danger);background:var(--danger-soft);border:1px solid var(--danger);border-radius:9px;padding:9px 14px;cursor:pointer"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m2 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>Hesabı sil</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        </sc-if>
+      </div>
+
+      <!-- ===== DOCUMENT PANEL ===== -->
+      <sc-if value="{{ docOpen }}" hint-placeholder-val="{{ false }}">
+        <aside style="{{ docPanelStyle }}">
+          <div style="height:56px;flex:0 0 auto;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;padding:0 14px;background:var(--surface)">
+            <span style="width:9px;height:9px;border-radius:50%;flex:0 0 auto;background:{{ doc.dbColor }}"></span>
+            <div style="font-size:12.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ doc.court }}</div>
+            <div style="flex:1"></div>
+            <button onClick="{{ closeDoc }}" style="width:32px;height:32px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--ink-2);cursor:pointer;display:flex;align-items:center;justify-content:center;flex:0 0 auto"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+          </div>
+          <div style="flex:1;overflow-y:auto;padding:22px 26px 40px 26px">
+            <div style="display:inline-flex;align-items:center;gap:6px;font-size:11px;color:var(--gold);background:var(--gold-soft);padding:3px 9px;border-radius:20px;margin-bottom:14px"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 4v6h6M20 20v-6h-6"/><path d="M4 10a8 8 0 0 1 14-3M20 14a8 8 0 0 1-14 3"/></svg>önbellekten · 18.07.2026</div>
+            <h2 style="font-family:var(--serif);font-weight:600;font-size:21px;line-height:1.3;margin:0 0 12px 0;letter-spacing:-.01em">{{ doc.title }}</h2>
+            <div style="display:flex;flex-wrap:wrap;gap:14px;font-family:var(--mono);font-size:11.5px;color:var(--ink-2);padding-bottom:14px;border-bottom:1px solid var(--border);margin-bottom:8px">
+              <span><span style="color:var(--ink-3)">Esas</span> {{ doc.esas }}</span>
+              <span><span style="color:var(--ink-3)">Karar</span> {{ doc.karar }}</span>
+              <span><span style="color:var(--ink-3)">Tarih</span> {{ doc.date }}</span>
+            </div>
+            <div style="display:flex;gap:7px;flex-wrap:wrap;margin:12px 0 18px 0">
+              <button onClick="{{ toggleBookmark }}" style="{{ bookmarkBtnStyle }}"><svg width="15" height="15" viewBox="0 0 24 24" fill="{{ bookmarkFill }}" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>{{ bookmarkLabel }}</button>
+              <button style="{{ docActionStyle }}"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h8"/></svg>Atıf kopyala</button>
+              <button style="{{ docActionStyle }}"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M10 14L21 3M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>Kaynak</button>
+            </div>
+            <div style="font-family:var(--serif);font-size:14.5px;line-height:1.72;color:var(--ink)">
+              <sc-for list="{{ doc.body }}" as="p" hint-placeholder-count="3">
+                <sc-if value="{{ p.isHead }}" hint-placeholder-val="{{ false }}"><h3 style="font-family:var(--sans);font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);margin:20px 0 8px 0">{{ p.text }}</h3></sc-if>
+                <sc-if value="{{ p.isText }}" hint-placeholder-val="{{ true }}"><p style="margin:0 0 13px 0;text-wrap:pretty">{{ p.text }}</p></sc-if>
+              </sc-for>
+            </div>
+            <div style="margin-top:22px;border-top:1px solid var(--border);padding-top:14px;display:flex;align-items:center;gap:12px">
+              <button style="{{ docActionStyle }}"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M15 18l-6-6 6-6"/></svg>Önceki sayfa</button>
+              <div style="flex:1;text-align:center;font-family:var(--mono);font-size:12px;color:var(--ink-2)">Sayfa 1 / 4</div>
+              <button style="{{ docActionPrimaryStyle }}">Sonraki sayfa<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M9 18l6-6-6-6"/></svg></button>
+            </div>
+          </div>
+        </aside>
+      </sc-if>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{
+  &quot;accent&quot;: { &quot;editor&quot;: &quot;enum&quot;, &quot;options&quot;: [&quot;oxblood&quot;, &quot;indigo&quot;, &quot;forest&quot;, &quot;slate&quot;], &quot;default&quot;: &quot;oxblood&quot;, &quot;tsType&quot;: &quot;string&quot;, &quot;section&quot;: &quot;Görünüm&quot; },
+  &quot;defaultTheme&quot;: { &quot;editor&quot;: &quot;enum&quot;, &quot;options&quot;: [&quot;light&quot;, &quot;dark&quot;], &quot;default&quot;: &quot;light&quot;, &quot;tsType&quot;: &quot;string&quot;, &quot;section&quot;: &quot;Görünüm&quot; },
+  &quot;sourceStatus&quot;: { &quot;editor&quot;: &quot;enum&quot;, &quot;options&quot;: [&quot;ok&quot;, &quot;degraded&quot;, &quot;down&quot;], &quot;default&quot;: &quot;ok&quot;, &quot;tsType&quot;: &quot;string&quot;, &quot;section&quot;: &quot;Kaynak durumu&quot; }
+}">
+class Component extends DCLogic {
+  state = {
+    theme: 'light', view: 'chat', sidebarOpen: true, isMobile: false,
+    messages: [], input: '', playing: false,
+    docOpen: false, doc: null, bookmarked: false,
+    search: { db: null, courts: { yargitay: true, danistay: false, yerel: false, istinaf: false, kyb: false }, phrase: 'kişisel veri', from: '01.01.2024', to: '31.12.2024', ran: false },
+    historyTab: 'searches',
+    lang: 'tr', model: 'sonnet5',
+  };
+
+  sessions = [
+    { device:'Chrome · macOS', loc:'İstanbul', last:'Şu an aktif', current:true },
+    { device:'Safari · iPhone', loc:'İstanbul', last:'3 saat önce', current:false },
+    { device:'Chrome · Windows', loc:'Ankara', last:'Dün 21:14', current:false },
+  ];
+  usage = [
+    { label:'Dil modeli jetonu', used:84200, total:300000, disp:'84.200 / 300.000', pct:28 },
+    { label:'Araç çağrısı', used:47, total:300, disp:'47 / 300', pct:16 },
+    { label:'Bedesten sorgusu', used:12, total:100, disp:'12 / 100', pct:12 },
+  ];
+  models = [ { id:'sonnet5', name:'Claude Sonnet 5', note:'Dengeli · varsayılan' }, { id:'opus', name:'Claude Opus', note:'En yetenekli · daha yavaş' }, { id:'haiku', name:'Claude Haiku', note:'En hızlı · kısa görevler' } ];
+
+  databases = [
+    { id:'bedesten', name:'Bedesten', sub:'Yargıtay · Danıştay', desc:'Yargıtay, Danıştay, yerel ve istinaf mahkemeleri ile Kanun Yararına Bozma kararları.', color:'#8A2A33' },
+    { id:'anayasa', name:'Anayasa Mahkemesi', sub:'AYM', desc:'Norm denetimi ve bireysel başvuru kararları.', color:'#3B4B8C' },
+    { id:'emsal', name:'Emsal', sub:'UYAP', desc:'İlk derece ve bölge adliye mahkemesi emsal kararları.', color:'#2E6E6A' },
+    { id:'kik', name:'Kamu İhale Kurulu', sub:'KİK', desc:'İhale uyuşmazlığı, düzenleyici ve mahkeme kararları.', color:'#8A5A1E' },
+    { id:'rekabet', name:'Rekabet Kurumu', sub:'RK', desc:'Birleşme/devralma, ihlal ve muafiyet kararları.', color:'#3F7A55' },
+    { id:'sayistay', name:'Sayıştay', sub:'', desc:'Genel kurul, temyiz ve daire kararları.', color:'#556072' },
+    { id:'kvkk', name:'KVKK', sub:'', desc:'Kişisel verilerin korunması kurul kararları.', color:'#6B3FA0' },
+    { id:'bddk', name:'BDDK', sub:'', desc:'Bankacılık düzenleme ve denetleme kararları.', color:'#2A5B8A', gated:true },
+    { id:'btk', name:'BTK', sub:'', desc:'Bilgi teknolojileri ve iletişim kurumu kararları.', color:'#1E7A8A' },
+    { id:'gib', name:'Gelir İdaresi', sub:'Özelge', desc:'Vergi özelgeleri ve muktezalar.', color:'#8A6A2A' },
+    { id:'uyusmazlik', name:'Uyuşmazlık Mahkemesi', sub:'', desc:'Görev ve hüküm uyuşmazlığı kararları.', color:'#A03D5E' },
+    { id:'sigorta', name:'Sigorta Tahkim', sub:'', desc:'Sigorta tahkim komisyonu hakem kararları.', color:'#4A6E2E', gated:true },
+  ];
+
+  accents = {
+    oxblood: { light:{p:'#8A2A33',ps:'#701F27',soft:'#F2E3E0',bd:'#E3C8C5',ink:'#FCFAF5'}, dark:{p:'#D07A7F',ps:'#B85A60',soft:'#39241F',bd:'#5C3A37',ink:'#1B1712'} },
+    indigo:  { light:{p:'#3B4B8C',ps:'#2E3B70',soft:'#E4E7F4',bd:'#C7CEEB',ink:'#FCFAF5'}, dark:{p:'#8E9BE0',ps:'#727FC8',soft:'#23273F',bd:'#3A4266',ink:'#141625'} },
+    forest:  { light:{p:'#2F6E4A',ps:'#245939',soft:'#E0EEE4',bd:'#C2E0CB',ink:'#FCFAF5'}, dark:{p:'#79C293',ps:'#5DA377',soft:'#20302A',bd:'#37543F',ink:'#12201A'} },
+    slate:   { light:{p:'#455066',ps:'#353E52',soft:'#E6E9F0',bd:'#CBD1DE',ink:'#FCFAF5'}, dark:{p:'#9AA6BF',ps:'#7E8AA6',soft:'#262B36',bd:'#3D4453',ink:'#161922'} },
+  };
+
+  componentDidMount() {
+    this._alive = true;
+    this._runId = 0;
+    if (this.props.defaultTheme === 'dark' || this.props.defaultTheme === 'light') this.setState({ theme: this.props.defaultTheme });
+    this._mq = window.matchMedia('(max-width: 900px)');
+    const apply = () => this.setState({ isMobile: this._mq.matches, sidebarOpen: !this._mq.matches });
+    apply();
+    this._mqh = () => apply();
+    this._mq.addEventListener('change', this._mqh);
+  }
+  componentWillUnmount() {
+    this._alive = false;
+    if (this._t) clearTimeout(this._t);
+    if (this._mq && this._mqh) this._mq.removeEventListener('change', this._mqh);
+  }
+  sleep(ms) { return new Promise(r => { this._t = setTimeout(() => { if (this._alive) r(); }, ms); }); }
+  componentDidUpdate() {
+    if (this.state.view !== 'chat' || !this.state.playing) return;
+    const el = document.querySelector('[data-chat-scroll]');
+    if (el) el.scrollTop = el.scrollHeight;
+  }
+
+  db = {
+    bedesten: { label: 'Bedesten', color: '#8A2A33' },
+    anayasa:  { label: 'Anayasa Mahkemesi', color: '#3B4B8C' },
+    kvkk:     { label: 'KVKK', color: '#6B3FA0' },
+    rekabet:  { label: 'Rekabet Kurumu', color: '#3F7A55' },
+    emsal:    { label: 'Emsal (UYAP)', color: '#2E6E6A' },
+  };
+
+  decisions = {
+    d1: { id:'d1', db:'bedesten', court:'Yargıtay 9. Hukuk Dairesi', esas:'2024/4521', karar:'2024/8817', date:'14.03.2024',
+          konu:'İş sözleşmesinin feshi · kişisel veri', snippet:null },
+    d2: { id:'d2', db:'bedesten', court:'Yargıtay 12. Ceza Dairesi', esas:'2023/9912', karar:'2024/1180', date:'22.01.2024',
+          konu:'Verilerin hukuka aykırı ele geçirilmesi (TCK 136)', snippet:null },
+    d3: { id:'d3', db:'anayasa', court:'Anayasa Mahkemesi · Bireysel Başvuru', esas:'B. No: 2021/34567', karar:'—', date:'09.05.2024',
+          konu:'Özel hayatın gizliliği · kişisel veriler',
+          snippet:'Başvurucunun iş yeri iletişim verilerinin rızası dışında işlenmesi nedeniyle özel hayatın gizliliği hakkının ihlal edildiğine karar verilmiştir.' },
+    d4: { id:'d4', db:'kvkk', court:'KVKK · Kurul Kararı', esas:'2024/342', karar:'—', date:'28.02.2024',
+          konu:'Veri güvenliği ihlali · idari para cezası',
+          snippet:'Veri sorumlusunun gerekli teknik ve idari tedbirleri almaması nedeniyle 250.000 TL idari para cezası uygulanmasına karar verilmiştir.' },
+    d5: { id:'d5', db:'bedesten', court:'Danıştay 10. Daire', esas:'2022/5567', karar:'2024/771', date:'05.02.2024',
+          konu:'İdari işlemin iptali · veri paylaşımı', snippet:null },
+    d6: { id:'d6', db:'rekabet', court:'Rekabet Kurumu', esas:'24-08/149-70', karar:'—', date:'15.02.2024',
+          konu:'Birleşme / Devralma', snippet:'Bildirime konu devralma işlemine 4054 sayılı Kanun kapsamında izin verilmesine karar verilmiştir.' },
+    d7: { id:'d7', db:'bedesten', court:'Yargıtay Hukuk Genel Kurulu', esas:'2023/9-112', karar:'2024/55', date:'31.01.2024',
+          konu:'İçtihadı birleştirme · kişisel veri', snippet:null },
+    d8: { id:'d8', db:'kvkk', court:'KVKK · Kurul Kararı', esas:'2023/1567', karar:'—', date:'12.12.2023',
+          konu:'Açık rıza · veri işleme', snippet:'Açık rıza alınmadan ticari elektronik ileti gönderilmesi hakkında şikâyetin incelenmesi.' },
+    d9: { id:'d9', db:'bedesten', court:'Yargıtay 22. Hukuk Dairesi', esas:'2024/1203', karar:'2024/5540', date:'19.03.2024',
+          konu:'İşçilik alacakları · veri işleme', snippet:null },
+    d10:{ id:'d10', db:'bedesten', court:'Danıştay 13. Daire', esas:'2023/4410', karar:'2024/990', date:'28.02.2024',
+          konu:'İdari yaptırım · kişisel veri', snippet:null },
+  };
+
+  refShort(d) { return d.karar === '—' ? d.esas : ('E.' + d.esas + ' K.' + d.karar); }
+  refLong(d)  { return d.karar === '—' ? d.esas : ('E. ' + d.esas + ' · K. ' + d.karar); }
+  dbColorOf(id) { const d = this.databases.find(x => x.id === id); return d ? d.color : 'var(--ink-3)'; }
+  dbNameOf(id) { const d = this.databases.find(x => x.id === id); return d ? d.name : id; }
+
+  historySearches = [
+    { q:'kişisel veri', db:'bedesten', count:12, status:'ok', time:'2 saat önce', snap:'bugün 09:12' },
+    { q:'veri güvenliği ihlali', db:'kvkk', count:6, status:'ok', time:'dün', snap:'dün 16:40' },
+    { q:'birleşme devralma bildirimi', db:'rekabet', count:12, status:'ok', time:'dün', snap:'dün 14:02' },
+    { q:'özel hayatın gizliliği', db:'anayasa', count:3, status:'ok', time:'2 gün önce', snap:'2 gün önce' },
+    { q:'ihale itirazen şikayet', db:'kik', count:0, status:'empty', time:'3 gün önce', snap:'3 gün önce' },
+    { q:'banka idari para cezası', db:'bddk', count:null, status:'rate', time:'4 gün önce', snap:'4 gün önce' },
+  ];
+  historyChats = [
+    { title:'Kişisel veri ihlali içtihadı', preview:'2024\u2019te Yargıtay ve Anayasa Mahkemesi\u2019nin kişisel verilerin hukuka aykırı işlenmesine dair kararları…', time:'2 saat önce', msgs:6 },
+    { title:'KVKK idari para cezaları', preview:'Veri güvenliği ihlali nedeniyle uygulanan idari para cezalarının ölçütleri…', time:'dün', msgs:4 },
+    { title:'İşçi alacağında zamanaşımı', preview:'İş sözleşmesinden doğan alacaklarda zamanaşımı süreleri ve başlangıcı…', time:'dün', msgs:8 },
+    { title:'Rekabet Kurulu birleşme kararları', preview:'Son dönemde izin verilen devralma işlemleri ve eşik değerler…', time:'bu hafta', msgs:5 },
+  ];
+  historyDocs = [ { id:'d3', time:'2 saat önce' }, { id:'d1', time:'2 saat önce' }, { id:'d4', time:'dün' }, { id:'d6', time:'3 gün önce' } ];
+  bookmarks = [
+    { id:'d3', note:'Açık rızanın özgür iradeye dayanması kriteri için başlıca emsal.', tags:['kişisel veri','emsal','AYM'] },
+    { id:'d1', note:'İşçinin verilerinin rızasız işlenmesinin haklı fesih sayıldığı karar.', tags:['iş hukuku','kişisel veri'] },
+    { id:'d6', note:'Eşik değer ve pazar tanımı analizi açısından örnek.', tags:['rekabet','birleşme'] },
+  ];
+
+  docBodyFor(d) {
+    return [
+      { isHead:true, text:'Taraflar ve Konu' },
+      { isText:true, text:'Davacı vekili dava dilekçesinde; müvekkilinin kişisel verilerinin, iş ilişkisi kapsamında açık rızası bulunmaksızın işveren tarafından işlendiğini, bu durumun 6698 sayılı Kişisel Verilerin Korunması Kanunu ile Anayasa\u2019nın 20. maddesine aykırı olduğunu ileri sürerek zararının tazminini talep etmiştir.' },
+      { isText:true, text:'Davalı vekili ise verilerin iş sözleşmesinin ifası ve yasal yükümlülüklerin yerine getirilmesi amacıyla, ölçülülük ilkesine uygun biçimde işlendiğini savunarak davanın reddini istemiştir.' },
+      { isHead:true, text:'Gerekçe' },
+      { isText:true, text:'Uyuşmazlık, işçiye ait kişisel verilerin işlenmesinde hukuka uygunluk sebebinin bulunup bulunmadığı ile açık rızanın geçerlilik koşulları noktasında toplanmaktadır. İşçinin, işveren karşısındaki bağımlılık ilişkisi dikkate alındığında, açık rızanın özgür iradeye dayandığının kabulü güçtür.' },
+      { isText:true, text:'Kişisel verilerin işlenmesi, ancak Kanun\u2019un 5. maddesinde sayılan şartlardan birinin varlığı hâlinde mümkündür. Somut olayda, işveni tarafından yürütülen izleme faaliyetinin ölçülülük ilkesini aştığı, çalışana önceden açık ve anlaşılır bir aydınlatma yapılmadığı anlaşılmaktadır.' },
+      { isHead:true, text:'Sonuç' },
+      { isText:true, text:'Açıklanan nedenlerle; yerel mahkeme kararının bozulmasına, dosyanın gönderildiği mahkemeye geri gönderilmesine, oy birliğiyle karar verilmiştir.' },
+    ];
+  }
+
+  answerParas() {
+    const t = (v) => ({ isText:true, v });
+    const c = (n, docId) => ({ isCite:true, n, docId, open:() => this.openDoc(docId) });
+    return [
+      [ t('Özetle: 2024 yılında Yargıtay ve Anayasa Mahkemesi, kişisel verilerin hukuka aykırı işlenmesini hem özel hayatın gizliliği hem de KVKK yükümlülükleri bakımından değerlendirdi. Öne çıkan üç karar şöyle:') ],
+      [ t('Anayasa Mahkemesi, bir çalışanın iş yeri iletişim verilerinin rızası dışında işlenmesini özel hayatın gizliliğinin ihlali saydı '), c(1,'d3'), t('. Karar, işveren-işçi ilişkisinde açık rızanın özgür iradeye dayanması gerektiğini vurguluyor.') ],
+      [ t('Yargıtay 9. Hukuk Dairesi, kişisel verilerin açık rıza olmaksızın işlenmesinin iş sözleşmesinin feshini haklı kıldığına hükmetti '), c(2,'d1'), t('.') ],
+      [ t('KVKK ise veri sorumlusunun teknik ve idari tedbir yükümlülüğünü yerine getirmemesi nedeniyle idari para cezası uyguladı '), c(3,'d4'), t('.') ],
+      [ t('Kararların tam gerekçesi için aşağıdaki kaynak kartlarına dokunabilirsiniz.') ],
+    ];
+  }
+
+  // ---- nav / chrome ----
+  setView(v) { this.setState({ view: v }); if (this.state.isMobile) this.setState({ sidebarOpen: false }); }
+  toggleTheme() { this.setState(s => ({ theme: s.theme === 'light' ? 'dark' : 'light' })); }
+  toggleSidebar() { this.setState(s => ({ sidebarOpen: !s.sidebarOpen })); }
+  closeSidebar() { this.setState({ sidebarOpen: false }); }
+
+  // ---- chat ----
+  newChat() { this._runId = (this._runId||0)+1; this.setView('chat'); this.setState({ messages: [], playing: false }); }
+  onInput(e) { this.setState({ input: e.target.value }); }
+  onKeyDown(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); this.send(); } }
+  send() { const v = (this.state.input || '').trim(); if (!v || this.state.playing) return; this.setState({ input: '' }); this.ask(v); }
+  starter(text) { if (this.state.playing) return; this.ask(text); }
+
+  ask(text) {
+    this.setView('chat');
+    this.setState(s => ({ messages: [...s.messages, { role:'user', content:text }, { role:'assistant', steps:[], answer:[], cites:[], thinking:true, streaming:true }], playing:true }));
+    this.run();
+  }
+
+  upd(fn) {
+    this.setState(s => {
+      const m = s.messages.slice();
+      const last = { ...m[m.length - 1] };
+      last.steps = last.steps ? last.steps.map(x => ({ ...x })) : [];
+      last.answer = last.answer ? last.answer.map(p => p.slice()) : [];
+      fn(last);
+      m[m.length - 1] = last;
+      return { messages: m };
+    });
+  }
+
+  async run() {
+    const myId = ++this._runId;
+    const cur = () => this._runId === myId && this._alive;
+    const wait = async (ms) => { await this.sleep(ms); return cur(); };
+    const D = this.decisions;
+    const hit = (d) => ({ ...d, open:() => this.openDoc(d.id) });
+    if (!(await wait(650))) return;
+    this.upd(m => { m.thinking = false; m.steps = [{ tool:'search_bedesten_unified', db:'bedesten', label:'Bedesten\u2019de aranıyor: «kişisel veri» · Yargıtay · 2024', status:'running' }]; });
+    if (!(await wait(1150))) return;
+    this.upd(m => { m.steps[0] = { ...m.steps[0], status:'done', count:12, hits:[hit(D.d1),hit(D.d2),hit(D.d7)] }; });
+    if (!(await wait(500))) return;
+    this.upd(m => { m.steps.push({ tool:'search_kvkk_decisions', db:'kvkk', label:'KVKK\u2019da aranıyor: «veri güvenliği ihlali»', status:'running' }); });
+    if (!(await wait(750))) return;
+    this.upd(m => { const i = m.steps.length-1; m.steps[i] = { ...m.steps[i], status:'wait', retry:4 }; });
+    for (let r = 4; r >= 1; r--) { this.upd(m => { const i = m.steps.length-1; m.steps[i] = { ...m.steps[i], retry:r }; }); if (!(await wait(470))) return; }
+    this.upd(m => { const i = m.steps.length-1; m.steps[i] = { ...m.steps[i], status:'done', retry:null, count:6, hits:[hit(D.d4),hit(D.d8)] }; });
+    if (!(await wait(500))) return;
+    this.upd(m => { m.steps.push({ tool:'search_anayasa_unified', db:'anayasa', label:'Anayasa Mahkemesi\u2019nde aranıyor: «özel hayatın gizliliği»', status:'running' }); });
+    if (!(await wait(1050))) return;
+    this.upd(m => { const i = m.steps.length-1; m.steps[i] = { ...m.steps[i], status:'done', count:3, hits:[hit(D.d3)] }; });
+    if (!(await wait(650))) return;
+    const paras = this.answerParas();
+    for (const para of paras) {
+      this.upd(m => { m.answer.push(para.slice()); });
+      if (!(await wait(320))) return;
+    }
+    this.upd(m => { m.cites = [D.d3,D.d1,D.d4].map((d,i) => ({ ...d, marker:i+1, open:() => this.openDoc(d.id) })); m.streaming = false; m.finalized = true; });
+    this.setState({ playing:false });
+  }
+
+  // ---- search ----
+  selectDb(id) { const d = this.databases.find(x => x.id === id); if (!d || d.gated) return; this.setState(s => ({ search: { ...s.search, db:id, ran:false } })); }
+  backDb() { this.setState(s => ({ search: { ...s.search, db:null, ran:false } })); }
+  toggleCourt(k) { this.setState(s => ({ search: { ...s.search, courts: { ...s.search.courts, [k]: !s.search.courts[k] } } })); }
+  setSearchField(f, v) { this.setState(s => ({ search: { ...s.search, [f]: v } })); }
+  runSearch() { this.setState(s => ({ search: { ...s.search, ran:true } })); }
+  continueInChat() { this.setState(s => ({ search: { ...s.search, ran:false } })); this.ask("Bu arama sonuçlarındaki kişisel veri ihlali kararlarını özetler misin?"); }
+  searchRowsFor(db) {
+    const D = this.decisions;
+    const map = { bedesten:[D.d1,D.d9,D.d2,D.d10,D.d5,D.d7], anayasa:[D.d3], kvkk:[D.d4,D.d8], rekabet:[D.d6], emsal:[D.d1,D.d9] };
+    return map[db] || Object.values(D).filter(x => x.db === db);
+  }
+
+  // ---- settings ----
+  setLang(l) { this.setState({ lang: l }); }
+  setModel(m) { this.setState({ model: m }); }
+
+  // ---- history ----
+  setHistoryTab(t) { this.setState({ historyTab: t }); }
+  rerunSearch(db) { this.setState(s => ({ view:'search', search: { ...s.search, db, ran:true } })); if (this.state.isMobile) this.setState({ sidebarOpen:false }); }
+
+  // ---- document panel ----
+  openDoc(id) { const d = this.decisions[id]; if (!d) return; this.setState({ docOpen:true, doc:d, bookmarked:false }); }
+  closeDoc() { this.setState({ docOpen:false }); }
+  toggleBookmark() { this.setState(s => ({ bookmarked: !s.bookmarked })); }
+
+  // ---- styles ----
+  navStyle(active) {
+    return `display:flex;align-items:center;gap:11px;padding:9px 11px;border-radius:9px;border:none;cursor:pointer;font-size:13.5px;font-weight:${active?600:500};text-align:left;` +
+      (active ? 'background:var(--surface-3);color:var(--ink)' : 'background:transparent;color:var(--ink-2)');
+  }
+  convBtn(active) {
+    return `display:flex;align-items:center;width:100%;padding:8px 10px;border-radius:8px;border:none;cursor:pointer;font-size:12.5px;text-align:left;margin-bottom:1px;` +
+      (active ? 'background:var(--primary-soft);color:var(--ink);font-weight:600' : 'background:transparent;color:var(--ink-2);font-weight:400');
+  }
+
+  renderVals() {
+    const s = this.state;
+    const v = s.view;
+    const titles = { chat:'Sohbet', search:'Arama', history:'Geçmiş', bookmarks:'Kayıtlı', settings:'Ayarlar' };
+    const messages = (s.messages || []).map(m => {
+      if (m.role === 'user') return { isUser:true, isAssistant:false, content:m.content };
+      const steps = (m.steps || []).map(st => ({
+        tool: st.tool, dbLabel: (this.db[st.db]||{}).label || st.db, dotColor: (this.db[st.db]||{}).color || 'var(--ink-3)',
+        label: st.label, running: st.status==='running', waiting: st.status==='wait', done: st.status==='done',
+        retry: st.retry, count: st.count, hasHits: st.status==='done' && st.hits && st.hits.length>0,
+        hits: (st.hits||[]).map(h => ({ court:h.court, refShort:this.refShort(h), date:h.date, dbColor:(this.db[h.db]||{}).color, open:h.open })),
+      }));
+      const answer = (m.answer || []).map(p => p.map(seg => seg.isText ? { isText:true, isCite:false, v:seg.v } : { isText:false, isCite:true, n:seg.n, open:seg.open }));
+      const cites = (m.cites || []).map(c => ({ marker:c.marker, court:c.court, ref:this.refLong(c), date:c.date, dbColor:(this.db[c.db]||{}).color, snippet:c.snippet, hasSnippet:!!c.snippet, open:c.open }));
+      return { isUser:false, isAssistant:true, thinking:!!m.thinking, steps, hasAnswer:answer.length>0, answer, streaming:!!m.streaming, hasCites:cites.length>0, cites, finalized:!!m.finalized };
+    });
+
+    const sidebarBase = 'width:264px;flex:0 0 auto;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;height:100%;';
+    const sidebarStyle = s.isMobile
+      ? sidebarBase + `position:fixed;left:0;top:0;bottom:0;z-index:50;box-shadow:var(--shadow-lg);transition:transform .25s ease;transform:translateX(${s.sidebarOpen?'0':'-105%'})`
+      : sidebarBase + `transition:margin-left .25s ease;margin-left:${s.sidebarOpen?'0':'-264px'}`;
+
+    const doc = s.doc ? { court:s.doc.court, title: this.decisions[s.doc.id] ? (s.doc.konu.charAt(0).toUpperCase()+s.doc.konu.slice(1)+' hakkında karar') : s.doc.court, esas:s.doc.esas, karar:s.doc.karar, date:s.doc.date, dbColor:(this.db[s.doc.db]||{}).color, body:this.docBodyFor(s.doc) } : null;
+    const docPanelBase = 'display:flex;flex-direction:column;background:var(--surface);border-left:1px solid var(--border);height:100%;';
+    const docPanelStyle = s.isMobile
+      ? docPanelBase + 'position:fixed;inset:0;z-index:60;width:100%'
+      : docPanelBase + 'width:clamp(380px,40vw,520px);flex:0 0 auto';
+
+    // ---- search view ----
+    const sr = s.search;
+    const cardBase = 'display:flex;flex-direction:column;text-align:left;border-radius:14px;padding:15px 16px;border:1px solid var(--border);background:var(--surface);';
+    const databases = this.databases.map(d => ({
+      id:d.id, name:d.name, sub:d.sub, hasSub:!!d.sub, desc:d.desc, color:d.color, gated:!!d.gated,
+      cardStyle: cardBase + (d.gated ? 'opacity:.6;cursor:not-allowed' : 'cursor:pointer;box-shadow:var(--shadow-sm)'),
+      select: () => this.selectDb(d.id),
+    }));
+    const searchDb = sr.db ? this.databases.find(x => x.id === sr.db) : null;
+    const courtList = [ ['yargitay','Yargıtay'], ['danistay','Danıştay'], ['yerel','Yerel Mahkeme'], ['istinaf','İstinaf (BAM)'], ['kyb','Kanun Yararına Bozma'] ].map(([k,label]) => ({
+      k, label, active: !!sr.courts[k], toggle: () => this.toggleCourt(k),
+      style: `display:inline-flex;align-items:center;gap:6px;padding:7px 13px;border-radius:20px;font-size:12.5px;font-weight:500;cursor:pointer;border:1px solid ${sr.courts[k]?'var(--primary)':'var(--border-strong)'};background:${sr.courts[k]?'var(--primary-soft)':'var(--surface)'};color:${sr.courts[k]?'var(--primary)':'var(--ink-2)'}`,
+    }));
+    const opChips = ['"tam ifade"','+gerekli','-hariç','VE','VEYA','DEĞİL'];
+    const searchRows = (sr.ran && sr.db) ? this.searchRowsFor(sr.db).map(d => ({ court:d.court, ref:this.refLong(d), date:d.date, konu:d.konu, dbColor:(this.db[d.db]||{}).color||searchDb.color, open:() => this.openDoc(d.id) })) : [];
+    const searchTotal = { bedesten:128, anayasa:3, kvkk:6, rekabet:12, emsal:44 }[sr.db] || searchRows.length;
+
+    // ---- settings view ----
+    const sessions = this.sessions.map(x => ({ ...x, notCurrent: !x.current, dotColor: x.current ? 'var(--green)' : 'var(--ink-3)' }));
+    const usage = this.usage.map(x => ({ ...x, barStyle:`width:${x.pct}%;height:100%;border-radius:20px;background:${x.pct>80?'var(--danger)':(x.pct>50?'var(--amber)':'var(--primary)')}` }));
+    const models = this.models.map(x => ({ ...x, active: s.model===x.id, select:() => this.setModel(x.id),
+      style:`display:flex;align-items:center;gap:11px;text-align:left;width:100%;padding:12px 14px;border-radius:11px;cursor:pointer;border:1px solid ${s.model===x.id?'var(--primary)':'var(--border)'};background:${s.model===x.id?'var(--primary-soft)':'var(--surface)'}` }));
+    const segBtn = (on) => `flex:1;padding:8px 14px;border-radius:8px;border:none;cursor:pointer;font-size:13px;font-weight:${on?600:500};background:${on?'var(--surface)':'transparent'};color:${on?'var(--ink)':'var(--ink-2)'};box-shadow:${on?'var(--shadow-sm)':'none'}`;
+
+    // ---- history view ----
+    const ht = s.historyTab;
+    const tabStyle = (on) => `padding:8px 15px;border-radius:9px;border:none;cursor:pointer;font-size:13px;font-weight:${on?600:500};background:${on?'var(--surface)':'transparent'};color:${on?'var(--ink)':'var(--ink-2)'};box-shadow:${on?'var(--shadow-sm)':'none'}`;
+    const statusChip = { ok:['var(--green)','var(--green-soft)'], empty:['var(--ink-3)','var(--surface-2)'], rate:['var(--amber)','var(--amber-soft)'] };
+    const histSearches = this.historySearches.map(x => {
+      const [fg,bg] = statusChip[x.status] || statusChip.ok;
+      const label = x.status==='ok' ? (x.count + ' sonuç') : (x.status==='empty' ? 'sonuç yok' : 'hız sınırı');
+      return { q:x.q, db:x.db, dbName:this.dbNameOf(x.db), dbColor:this.dbColorOf(x.db), time:x.time, snap:x.snap, statusFg:fg, statusBg:bg, statusLabel:label,
+        rerun:() => this.rerunSearch(x.db) };
+    });
+    const histChats = this.historyChats.map(x => ({ ...x, open:() => this.setView('chat') }));
+    const histDocs = this.historyDocs.map(x => { const d = this.decisions[x.id]; return { court:d.court, ref:this.refLong(d), date:d.date, time:x.time, dbColor:this.dbColorOf(d.db), open:() => this.openDoc(x.id) }; });
+
+    // ---- bookmarks view ----
+    const bookmarks = this.bookmarks.map(b => { const d = this.decisions[b.id]; return { court:d.court, ref:this.refLong(d), date:d.date, dbColor:this.dbColorOf(d.db), konu:d.konu, note:b.note, tags:b.tags, open:() => this.openDoc(b.id) }; });
+    const allTags = ['tümü','kişisel veri','iş hukuku','rekabet','emsal','birleşme'];
+
+    // ---- tweak props: accent + source status ----
+    const acc = this.accents[this.props.accent] || this.accents.oxblood;
+    const ap = acc[s.theme] || acc.light;
+    const accentVars = `--primary:${ap.p};--primary-strong:${ap.ps};--primary-soft:${ap.soft};--primary-border:${ap.bd};--primary-ink:${ap.ink}`;
+    const statusMap = { ok:['var(--green)','Bedesten · Yargıtay çalışıyor',true], degraded:['var(--amber)','Bedesten · Yargıtay yavaş yanıt veriyor',false], down:['var(--danger)','Bedesten · Yargıtay erişilemiyor',false] };
+    const st = statusMap[this.props.sourceStatus] || statusMap.ok;
+    const healthDotStyle = `width:8px;height:8px;border-radius:50%;flex:0 0 auto;background:${st[0]};` + (st[2] ? 'animation:om-pulse 2.4s infinite' : '');
+
+    const send = () => this.send();
+    return {
+      accentVars, healthDotStyle, healthText: st[1],
+      // bookmarks
+      bookmarks, allTags,
+      // settings
+      sessions, usage, models,
+      langTr: s.lang==='tr', langEn: s.lang==='en',
+      langTrStyle: segBtn(s.lang==='tr'), langEnStyle: segBtn(s.lang==='en'),
+      themeLightStyle: segBtn(s.theme==='light'), themeDarkStyle: segBtn(s.theme==='dark'),
+      setLangTr:()=>this.setLang('tr'), setLangEn:()=>this.setLang('en'),
+      setThemeLight:()=>this.setState({theme:'light'}), setThemeDark:()=>this.setState({theme:'dark'}),
+      // history
+      historyTab: ht, isTabSearches: ht==='searches', isTabChats: ht==='chats', isTabDocs: ht==='docs',
+      tabSearchesStyle:tabStyle(ht==='searches'), tabChatsStyle:tabStyle(ht==='chats'), tabDocsStyle:tabStyle(ht==='docs'),
+      histSearches, histChats, histDocs,
+      setTabSearches:()=>this.setHistoryTab('searches'), setTabChats:()=>this.setHistoryTab('chats'), setTabDocs:()=>this.setHistoryTab('docs'),
+      // search
+      databases, searchDb,
+      searchColor: searchDb ? searchDb.color : 'var(--primary)',
+      searchName: searchDb ? searchDb.name : '', searchDesc: searchDb ? searchDb.desc : '',
+      isPicker: !sr.db, formOpen: !!sr.db, isBedesten: sr.db==='bedesten', isGenericForm: !!sr.db && sr.db!=='bedesten',
+      courtList, opChips, phrase: sr.phrase, dateFrom: sr.from, dateTo: sr.to,
+      searchRan: sr.ran, searchRows, searchHasRows: searchRows.length>0, searchTotal, searchCountLabel: searchRows.length ? ('1\u2013' + searchRows.length + ' / ' + searchTotal + ' sonuç') : '',
+      selectDb:(id)=>this.selectDb(id), backDb:()=>this.backDb(),
+      onPhrase:(e)=>this.setSearchField('phrase', e.target.value), onFrom:(e)=>this.setSearchField('from', e.target.value), onTo:(e)=>this.setSearchField('to', e.target.value),
+      runSearch:()=>this.runSearch(), continueInChat:()=>this.continueInChat(),
+      theme: s.theme, isDark: s.theme==='dark', isLight: s.theme==='light',
+      isChat: v==='chat', isSearch: v==='search', isHistory: v==='history', isBookmarks: v==='bookmarks', isSettings: v==='settings',
+      viewTitle: titles[v] || 'Yargı Asistan',
+      sidebarStyle, showBackdrop: s.isMobile && s.sidebarOpen,
+      hamburgerStyle: `width:36px;height:36px;border-radius:9px;border:1px solid var(--border);background:var(--surface);color:var(--ink-2);cursor:pointer;align-items:center;justify-content:center;flex:0 0 auto;display:${s.isMobile?'flex':'none'}`,
+      healthTextStyle: `display:${s.isMobile?'none':'inline'}`,
+      navChatStyle:this.navStyle(v==='chat'), navSearchStyle:this.navStyle(v==='search'), navHistoryStyle:this.navStyle(v==='history'), navBookmarksStyle:this.navStyle(v==='bookmarks'), navSettingsStyle:this.navStyle(v==='settings'),
+      convActiveStyle:this.convBtn(v==='chat'), convStyle:this.convBtn(false),
+      profileBtnStyle:`flex:1;display:flex;align-items:center;gap:10px;border:none;padding:7px 8px;border-radius:10px;cursor:pointer;color:var(--ink);text-align:left;background:${v==='settings'?'var(--surface-3)':'transparent'}`,
+      messages, hasMessages: messages.length>0, chatEmpty: messages.length===0,
+      input: s.input,
+      starterStyle:'display:flex;flex-direction:column;text-align:left;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:13px 14px;cursor:pointer;box-shadow:var(--shadow-sm)',
+      sendBtnStyle:'width:38px;height:38px;border-radius:11px;border:none;background:var(--primary);color:var(--primary-ink);cursor:pointer;display:flex;align-items:center;justify-content:center;flex:0 0 auto',
+      ghostBtnStyle:'display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:500;color:var(--ink-2);background:transparent;border:1px solid var(--border);border-radius:8px;padding:6px 10px;cursor:pointer',
+      docOpen: s.docOpen, doc, docPanelStyle,
+      bookmarked: s.bookmarked, bookmarkFill: s.bookmarked ? 'currentColor' : 'none',
+      bookmarkLabel: s.bookmarked ? 'Kaydedildi' : 'Kaydet',
+      bookmarkBtnStyle:`display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;border-radius:9px;padding:8px 12px;cursor:pointer;border:1px solid ${s.bookmarked?'var(--primary)':'var(--border-strong)'};background:${s.bookmarked?'var(--primary-soft)':'var(--surface)'};color:${s.bookmarked?'var(--primary)':'var(--ink)'}`,
+      docActionStyle:'display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:500;color:var(--ink);background:var(--surface);border:1px solid var(--border-strong);border-radius:9px;padding:8px 12px;cursor:pointer',
+      docActionPrimaryStyle:'display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;color:var(--primary-ink);background:var(--primary);border:none;border-radius:9px;padding:8px 12px;cursor:pointer',
+      // handlers
+      toggleTheme:()=>this.toggleTheme(), toggleSidebar:()=>this.toggleSidebar(), closeSidebar:()=>this.closeSidebar(),
+      newChat:()=>this.newChat(), goChat:()=>this.setView('chat'), goSearch:()=>this.setView('search'), goHistory:()=>this.setView('history'), goBookmarks:()=>this.setView('bookmarks'), goSettings:()=>this.setView('settings'),
+      onInput:(e)=>this.onInput(e), onKeyDown:(e)=>this.onKeyDown(e), send,
+      starter0:()=>this.starter("2024'te Yargıtay'ın kişisel veri ihlali (KVKK) hakkında verdiği kararları özetler misin?"),
+      starterA:()=>this.starter("KVKK'nın veri güvenliği ihlali nedeniyle verdiği idari para cezası kararları neler?"),
+      starterB:()=>this.starter("Rekabet Kurulu'nun son dönemdeki birleşme ve devralma kararları neler?"),
+      starterC:()=>this.starter("Anayasa Mahkemesi'nin ifade özgürlüğüne ilişkin bireysel başvuru içtihadı nasıl?"),
+      closeDoc:()=>this.closeDoc(), toggleBookmark:()=>this.toggleBookmark(),
+      scrollRef:(el)=>{ this._scroll = el; },
+    };
+  }
+}
+</script>
+</body>
+</html>
