@@ -63,6 +63,13 @@ export interface UserOut {
   created_at: string;
 }
 
+export interface ModelOption {
+  key: "sonnet5" | "opus" | "haiku";
+  model: string;
+  name: string;
+  description: string;
+}
+
 export interface MetaOption {
   value?: string;
   id?: string;

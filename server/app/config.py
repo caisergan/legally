@@ -21,8 +21,15 @@ class Settings(BaseSettings):
 
     # --- LLM ---
     anthropic_api_key: str = ""
+    anthropic_base_url: str = ""
+    # Some Anthropic-compatible proxies (e.g. cliproxyapi behind a WAF) block the SDK's
+    # default "AsyncAnthropic/Python …" User-Agent. Sending a benign UA avoids that.
+    anthropic_user_agent: str = "yargi-asistan"
     chat_model: str = "claude-sonnet-5"
     title_model: str = "claude-haiku-4-5-20251001"
+    model_sonnet5: str = "claude-sonnet-5"
+    model_opus: str = "claude-opus-4-8"
+    model_haiku: str = "claude-haiku-4-5-20251001"
     max_tool_calls_per_turn: int = 15
     max_output_tokens: int = 4096
 

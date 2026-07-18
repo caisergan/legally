@@ -11,6 +11,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..adapters import FORM_METADATA, SOURCE_META, available
+from ..config import settings
 from ..db import get_db
 from ..mcp_bridge import bridge
 from ..models import User
@@ -27,6 +28,33 @@ CurrentUser = Annotated[User, Depends(get_current_user)]
 _health_cache: dict[str, Any] | None = None
 _health_cache_expires_at = 0.0
 _health_cache_lock = asyncio.Lock()
+
+
+def _model_name(model_id: str) -> str:
+    name = model_id.replace("-", " ").title()
+    if name.startswith("Gpt"):
+        return f"GPT{name[3:]}"
+    if name.startswith("Claude"):
+        return f"Claude{name[6:]}"
+    return name
+
+
+@router.get("/models")
+def list_models(_user: CurrentUser) -> list[dict[str, str]]:
+    slots = (
+        ("sonnet5", settings.model_sonnet5, "Dengeli · varsayılan"),
+        ("opus", settings.model_opus, "En yetenekli · daha yavaş"),
+        ("haiku", settings.model_haiku, "En hızlı · kısa görevler"),
+    )
+    return [
+        {
+            "key": key,
+            "model": model,
+            "name": _model_name(model),
+            "description": description,
+        }
+        for key, model, description in slots
+    ]
 
 
 @router.get("/sources")

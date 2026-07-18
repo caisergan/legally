@@ -31,9 +31,9 @@ from .quotas import check_and_touch
 logger = logging.getLogger("yargi_asistan.chat")
 
 MODEL_MAP: Final[dict[str, str]] = {
-    "sonnet5": "claude-sonnet-5",
-    "opus": "claude-opus-4-8",
-    "haiku": "claude-haiku-4-5-20251001",
+    "sonnet5": settings.model_sonnet5,
+    "opus": settings.model_opus,
+    "haiku": settings.model_haiku,
 }
 
 SYSTEM_PROMPT: Final[str] = """\
@@ -80,7 +80,13 @@ _QUEUE_END: Final[object] = object()
 
 anthropic_client = anthropic.AsyncAnthropic(
     api_key=settings.anthropic_api_key,
+    base_url=settings.anthropic_base_url or None,
     max_retries=0,
+    default_headers=(
+        {"User-Agent": settings.anthropic_user_agent}
+        if settings.anthropic_user_agent
+        else None
+    ),
 )
 
 

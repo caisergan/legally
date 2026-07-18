@@ -19,7 +19,11 @@ npm install
 npm run build
 ```
 
-Copy `server/.env.example` to `server/.env` and set the values needed for your environment. `ANTHROPIC_API_KEY` must be set in `server/.env` for chat to work.
+Copy `server/.env.example` to `server/.env` and set the values needed for your environment. `ANTHROPIC_API_KEY` must be set in `server/.env` for chat to work. Optionally set `ANTHROPIC_BASE_URL` to point the Anthropic client at a custom or proxy endpoint.
+
+### Anthropic-compatible endpoints
+
+The app can talk to any Anthropic-compatible endpoint by setting `ANTHROPIC_BASE_URL` and `ANTHROPIC_API_KEY`. Model IDs are configurable through `CHAT_MODEL`, `TITLE_MODEL`, `MODEL_SONNET5`, `MODEL_OPUS`, and `MODEL_HAIKU`, so the UI choices can use GPT models exposed by a proxy such as cliproxyapi.
 
 ## Run
 

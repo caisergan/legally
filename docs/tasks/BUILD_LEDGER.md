@@ -33,11 +33,11 @@ Status legend: `TODO` → `IN_PROGRESS` → `DONE` (implementer self-checks pass
 | 0 | Workspace scaffold | VERIFIED | pyproject + config/db/models/security/mcp_bridge created; `uv sync` ok; embedded bridge lists 26 tools; `.env` created |
 | 1 | Backend foundation (adapters, quotas, auth, meta, main) | VERIFIED | orchestrator runtime-checked: /meta/sources 12 dbs (bddk+sigorta gated), auth register(admin)/me/login/logout/usage ok, /meta/health ok |
 | 2 | Search & documents APIs (search, documents, history, bookmarks, account) | VERIFIED | live smoke ok: Bedesten search (544k total, normalized), doc cache MISS→HIT (0.003s), meta passthrough, bookmark+lookup+list, history, gated bddk→409, snapshot, rerun. Required a bridge fix (see CHANGELOG) |
-| 3 | Chat orchestration (chat.py + conversations routes + SSE) | VERIFIED* | routes ok: conv CRUD, message SSE degrades to clean error event w/o API key (user msg complete + assistant error persisted). *Live tool-loop chat deferred until ANTHROPIC_API_KEY provided |
+| 3 | Chat orchestration (chat.py + conversations routes + SSE) | VERIFIED | LIVE tool-loop proven via cliproxy gpt-5.6-sol: 15 real MCP tool calls (Bedesten search+doc), 710 text_delta, 2 citations ([34],[50]) matching in-text markers, title auto-gen "Yargıtay'da Kişisel Verilerin Korunması", persisted, quota moved (57k tokens). No-key path still degrades to clean error |
 | 4 | Frontend (Vite React SPA, all 6 surfaces) | VERIFIED* | 25 files; `npm install` + `npm run build` clean (strict tsc --noEmit passes → types mirror backend; 53 modules, code-split); FastAPI serves dist with SPA fallback (/ =index, /settings→index, /api/* 404 preserved); design tokens/fonts/keyframes/db-colors verbatim vs §3.2. *Interactive browser click-through pending (Claude Chrome extension not connected) |
 | 5 | Verification & polish (.env.example, README, .gitignore, 422→400) | VERIFIED | .env.example (all vars) + README (setup/run/dev) reviewed; register short-pw→400 + bad-email→400 confirmed at runtime, valid→201; orchestrator refined the two messages to proper Turkish (Şifre/Geçerli) |
 
-**BUILD COMPLETE — all phases VERIFIED. Two items pending external inputs only: (a) live tool-loop chat needs ANTHROPIC_API_KEY in server/.env; (b) interactive browser click-through needs the Claude Chrome extension connected.**
+**BUILD COMPLETE — all phases VERIFIED, including LIVE tool-loop chat (proven through cliproxy with gpt-5.6-sol). Plus: configurable Anthropic base URL, model IDs, and User-Agent → GPT models via an Anthropic-compatible proxy work end-to-end. Only remaining optional item: interactive browser click-through (Claude Chrome extension not connected this session).**
 
 > Workspace note: the repo is now a git repository rooted at `legally/`. All Codex phases run with
 > workspace = repo root and can write `server/`, `web/`, `docs/`, and root files. Run each phase on a
@@ -91,6 +91,19 @@ Status legend: `TODO` → `IN_PROGRESS` → `DONE` (implementer self-checks pass
   proper Turkish characters (Şifre en az 8 karakter olmalıdır / Geçerli bir e-posta adresi girin).
   ALL PHASES COMPLETE. Remaining verification gated only on external inputs: ANTHROPIC_API_KEY for
   the live chat tool-loop, and a connected Claude Chrome extension for the interactive browser E2E.
+- (codex) Added optional `ANTHROPIC_BASE_URL` support for custom or proxy Anthropic endpoints; empty values preserve the SDK default.
+- (codex) Made the three UI model IDs configurable for Anthropic-compatible proxies and GPT models.
+- (orchestrator) Diagnosed a proxy 403 "Your request was blocked": cliproxyapi's WAF blocks the
+  Anthropic SDK's default "AsyncAnthropic/Python …" User-Agent (curl/blank/custom UA → 200). Added
+  configurable `ANTHROPIC_USER_AGENT` (default "yargi-asistan") passed via the client's default_headers;
+  documented in .env.example. LIVE E2E through cliproxy gpt-5.6-sol then fully succeeded — see Phase 3.
+- (orchestrator) Phase 3 upgraded VERIFIED* → VERIFIED (live tool-loop chat proven end-to-end via the
+  proxy). Configured server/.env (gitignored) with the cliproxy base_url + key + gpt-5.6-sol model set.
+- (codex) Added authenticated `/api/meta/models` and data-driven Settings model cards; configured IDs, humanized names, slot descriptions, npm build, and `app.main` import self-check all pass.
+- (orchestrator) VERIFIED the relabel: rebuilt frontend (strict tsc, 53 modules) + restarted →
+  GET /api/meta/models (authed 200 / unauth 401) returns GPT 5.6 Sol=gpt-5.6-sol, GPT 5.6 Luna=
+  gpt-5.6-luna, GPT 5.4 Mini=gpt-5.4-mini. Refined the three slot descriptions to proper Turkish
+  with the design's separator (Dengeli · varsayılan / En yetenekli · daha yavaş / En hızlı · kısa görevler).
 
 ---
 

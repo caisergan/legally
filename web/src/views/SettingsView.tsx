@@ -1,18 +1,12 @@
 import { type CSSProperties, type FormEvent, type MouseEvent, useEffect, useMemo, useState } from "react";
 import { Icon } from "../components/Icon";
-import { apiDownload, apiFetch, apiJson } from "../lib/api";
+import { apiDownload, apiFetch, apiJson, fetchModelOptions } from "../lib/api";
 import { initials, relativeTime } from "../lib/format";
-import type { AuthSessionOut, UsageResponse } from "../lib/types";
+import type { AuthSessionOut, ModelOption, UsageResponse } from "../lib/types";
 import { useApp, type Theme } from "../state/app";
 import { useAuth } from "../state/auth";
 
 type ConfirmMode = "history" | "account" | null;
-
-const models = [
-  { id: "sonnet5", name: "Claude Sonnet 5", note: "Dengeli · varsayılan" },
-  { id: "opus", name: "Claude Opus", note: "En yetenekli · daha yavaş" },
-  { id: "haiku", name: "Claude Haiku", note: "En hızlı · kısa görevler" },
-];
 
 function formatNumber(value: number): string {
   return new Intl.NumberFormat("tr-TR").format(Math.max(0, value));
@@ -66,6 +60,7 @@ export default function SettingsView() {
   const { user, updateProfile, logout, refreshUser } = useAuth();
   const { theme, setTheme, refreshConversations } = useApp();
   const [sessions, setSessions] = useState<AuthSessionOut[]>([]);
+  const [modelOptions, setModelOptions] = useState<ModelOption[]>([]);
   const [usage, setUsage] = useState<UsageResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [editingProfile, setEditingProfile] = useState(false);
@@ -79,12 +74,14 @@ export default function SettingsView() {
   const loadSettings = async () => {
     setLoading(true);
     try {
-      const [sessionRows, usageRow] = await Promise.all([
+      const [sessionRows, usageRow, models] = await Promise.all([
         apiFetch<AuthSessionOut[] | { sessions: AuthSessionOut[] }>("/api/auth/sessions"),
         apiFetch<UsageResponse>("/api/meta/usage"),
+        fetchModelOptions(),
       ]);
       setSessions(Array.isArray(sessionRows) ? sessionRows : sessionRows.sessions);
       setUsage(usageRow);
+      setModelOptions(models);
     } catch (caught) {
       setNotice({ type: "error", text: caught instanceof Error ? caught.message : "Ayarlar yüklenemedi." });
     } finally {
@@ -255,12 +252,16 @@ export default function SettingsView() {
         <section className="settings-card">
           <div className="settings-section-label">Model ve günlük kullanım</div>
           <div className="model-list">
-            {models.map((model) => {
-              const active = (user.preferred_model || "sonnet5") === model.id;
+            {modelOptions.map((option) => {
+              const active = (user.preferred_model ?? modelOptions[0]?.key) === option.key;
               return (
-                <button type="button" className={`model-card ${active ? "active" : ""}`} key={model.id} disabled={saving} onClick={() => void updatePreference("preferred_model", model.id)}>
+                <button type="button" className={`model-card ${active ? "active" : ""}`} key={option.key} disabled={saving} onClick={() => void updatePreference("preferred_model", option.key)}>
                   <span className="radio-dot" />
-                  <span><span className="model-name">{model.name}</span><span className="model-note">{model.note}</span></span>
+                  <span>
+                    <span className="model-name">{option.name}</span>
+                    <span className="model-note">{option.description}</span>
+                    <span className="model-note mono">{option.model}</span>
+                  </span>
                 </button>
               );
             })}

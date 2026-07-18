@@ -1,3 +1,5 @@
+import type { ModelOption } from "./types";
+
 type ValidationIssue = {
   loc?: Array<string | number>;
   msg?: string;
@@ -72,6 +74,10 @@ export function apiJson<T>(path: string, method: string, body?: unknown): Promis
     method,
     body: body === undefined ? undefined : JSON.stringify(body),
   });
+}
+
+export function fetchModelOptions(): Promise<ModelOption[]> {
+  return apiFetch<ModelOption[]>("/api/meta/models");
 }
 
 export async function apiDownload(path: string, filename: string): Promise<void> {
