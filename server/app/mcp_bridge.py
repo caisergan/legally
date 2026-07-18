@@ -82,18 +82,32 @@ class McpBridge:
 
 
 def _extract_payload(result: Any) -> Any:
-    """Fold a fastmcp CallToolResult (or content list) into Python data."""
+    """Fold a fastmcp CallToolResult (or content list) into Python data.
+
+    fastmcp is inconsistent about ``.data``: for some tools (e.g. search_*) it is a
+    plain ``dict``, but for others (e.g. get_*_document_markdown) it is a dynamically
+    generated typed object (``Root``) that downstream dict-based code cannot read. The
+    raw JSON is always available in ``.content[0].text``, so we prefer that whenever
+    ``.data`` is not already a plain JSON container, and coerce typed objects as a last
+    resort. This keeps the documented contract: callers always receive dict/list data.
+    """
     # fastmcp >= 2.10 returns CallToolResult with .data / .content
     data = getattr(result, "data", None)
-    if data is not None:
-        return _maybe_json(data)
-    content = getattr(result, "content", result)
+    if isinstance(data, (dict, list)):
+        return data
+    # Typed object or scalar in .data → prefer the raw JSON content payload.
+    content = getattr(result, "content", None)
     if isinstance(content, list) and content:
-        first = content[0]
-        text = getattr(first, "text", None)
+        text = getattr(content[0], "text", None)
         if text is not None:
             return _maybe_json(text)
-    return content
+    if data is not None:
+        if hasattr(data, "model_dump"):
+            return data.model_dump()
+        if hasattr(data, "__dict__"):
+            return {k: v for k, v in vars(data).items() if not k.startswith("_")}
+        return _maybe_json(data)
+    return content if content is not None else result
 
 
 def _maybe_json(value: Any) -> Any:

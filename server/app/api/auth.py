@@ -6,7 +6,15 @@ from datetime import datetime
 from typing import Annotated, Literal
 
 from fastapi import APIRouter, Cookie, Depends, HTTPException, Request, Response, status
-from pydantic import BaseModel, ConfigDict, EmailStr, Field
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    EmailStr,
+    Field,
+    TypeAdapter,
+    ValidationError,
+    field_validator,
+)
 from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -30,6 +38,7 @@ _DUMMY_PASSWORD_HASH = (
     "$argon2id$v=19$m=65536,t=3,p=4$MIIRqgvgQbgj220qA6MPFg$"
     "YfwJSVjtjSU0zzV/P3S9nnQ/USre2wvJMjfCIjrTQbg"
 )
+_EMAIL_VALIDATOR = TypeAdapter(EmailStr)
 
 Database = Annotated[AsyncSession, Depends(get_db)]
 CurrentUser = Annotated[User, Depends(get_current_user)]
@@ -44,6 +53,26 @@ class RegisterRequest(RequestModel):
     email: EmailStr
     password: str = Field(min_length=8, max_length=1024)
     display_name: str | None = Field(default=None, max_length=200)
+
+    @field_validator("email", mode="before")
+    @classmethod
+    def return_clean_error_for_invalid_email(cls, value: object) -> object:
+        try:
+            _EMAIL_VALIDATOR.validate_python(value)
+        except ValidationError as error:
+            raise HTTPException(
+                status_code=400, detail="Geçerli bir e-posta adresi girin"
+            ) from error
+        return value
+
+    @field_validator("password", mode="before")
+    @classmethod
+    def return_clean_error_for_short_password(cls, value: object) -> object:
+        if isinstance(value, str) and len(value) < 8:
+            raise HTTPException(
+                status_code=400, detail="Şifre en az 8 karakter olmalıdır"
+            )
+        return value
 
 
 class LoginRequest(RequestModel):

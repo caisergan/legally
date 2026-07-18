@@ -9,7 +9,9 @@ __pycache__/
 .env.local
 
 # SQLite data
+data/
 server/data/
+*.db*
 *.db
 *.db-wal
 *.db-shm
