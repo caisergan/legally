@@ -52,6 +52,17 @@ jobs:
         env:
           YARGI_PYHANKO_PYTHON: /tmp/pyhanko-venv/bin/python
         run: go test ./internal/validation/ -run 'Matrix|TrustOutcome' -v
+      - name: Install SoftHSM (live end-to-end)
+        run: sudo apt-get install -y softhsm2
+      - name: Live SoftHSM end-to-end (test-only, stays QUARANTINED)
+        env:
+          YARGI_PYHANKO_PYTHON: /tmp/pyhanko-venv/bin/python
+          CGO_ENABLED: "1"
+        run: |
+          module=$(find /usr/lib -name libsofthsm2.so | head -1)
+          test -n "$module" || { echo "libsofthsm2.so not found" >&2; exit 1; }
+          eval "$(SOFTHSM_MODULE="$module" ./scripts/provision-softhsm-test-token.sh "$RUNNER_TEMP/softhsm" | grep '^export')"
+          go test -tags pkcs11 -run TestLiveSoftHSMEndToEnd -v -count=1 ./test/integration/
       - name: Enforce selected-fork dependency boundary
         run: |
           deps=$(go list -deps -f '{{if not .Standard}}{{.ImportPath}}{{end}}' ./... | sort -u)

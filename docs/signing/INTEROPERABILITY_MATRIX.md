@@ -14,12 +14,29 @@ and verify surfaces run without panics. Validator wrappers:
 `tools/pades_validate_pyhanko.py`. Trust store is empty and no revocation is
 fetched, so release stays refused and output stays quarantined.
 
+## Live SoftHSM end-to-end evidence (2026-07-19)
+
+`TestLiveSoftHSMEndToEnd` (`test/integration/`, build tag `pkcs11`) drives the
+full pipeline through the exact `internal/assembly.Build` wiring the daemon
+serves: enroll a real SoftHSM credential, create a job, reach `PIN_REQUIRED`,
+relay an ECDH-ES/A256GCM PIN envelope, perform the single `C_Sign`, verify the
+PAdES output locally, and re-verify it with both independent validators (Poppler
+`pdfsig` and pyHanko), which accept the signature and reject a one-byte-tampered
+copy. The credential is a self-signed test certificate, so trust is
+indeterminate and the job terminates `QUARANTINED` (never `COMPLETED`); this
+proves the vertical, not a qualified signature. Reproduce with
+`scripts/provision-softhsm-test-token.sh` then the test; it also runs in CI on
+Linux SoftHSM. The credential's private-key object is provisioned
+`CKA_PRIVATE=false` (material stays `CKA_SENSITIVE`) so the reviewed enrollment
+path can enumerate it without login — real tokens that hide private-key objects
+pre-login remain a known enrollment gap.
+
 ## Validator matrix
 
 | Fixture/profile | Signing backend | Internal verify | Validator 1 | Validator 2 | Result | Evidence |
 |---|---|---|---|---|---|---|
 | Controlled classic-xref PDF / B-B | Software test key | Pass | Poppler `pdfsig` 26.04.0: signature valid, entire-file coverage; issuer unknown (reconfirmed 2026-07-19) | pyHanko 0.35.2: crypto valid, coverage `ENTIRE_FILE`; trust/revocation indeterminate (self-signed) | PARTIAL — NOT QUALIFIED (both validators accept crypto; trust indeterminate; SoftHSM/live pending) | Both validators reject a one-byte-tampered copy; LibreSSL 3.3.6 also verified detached CMS; self-signed test certificate intentionally has no trusted issuer |
-| Corpus PDFs / B-B | SoftHSM | Pending | Pending | Pending | NOT QUALIFIED | — |
+| accepted_minimal corpus PDF / B-B | SoftHSM 2.x live `C_Sign` (RSA PKCS#1 SHA-256) | Pass | Poppler `pdfsig`: signature valid, rejects tamper (`TestLiveSoftHSMEndToEnd`) | pyHanko: crypto valid, rejects tamper (`TestLiveSoftHSMEndToEnd`) | PARTIAL — NOT QUALIFIED (live sign + both validators accept crypto; self-signed ⇒ trust indeterminate ⇒ QUARANTINED) | End-to-end via `internal/assembly.Build`: enroll → PIN_REQUIRED → PIN envelope → single C_Sign → local + two independent validators; output never released |
 | Controlled PDFs / B-B | Real owner token | Pending | Adobe Reader pending | ETSI-aware validator pending | NOT QUALIFIED | — |
 | Controlled PDFs / B-T | Real owner token + TSA | Pending | Pending | Pending | DISABLED | — |
 
@@ -51,7 +68,7 @@ accept/reject behavior asserted by `internal/pades` and `internal/corpus` tests.
 
 | Environment | OS/arch | Token/HSM | PKCS#11 module + digest | Slot/token binding | Certificate/key binding | Result |
 |---|---|---|---|---|---|---|
-| Test | Pending | SoftHSM | Pending | Pending | Pending | NOT CONFIGURED |
+| Test | macOS arm64 (dev) + Linux x86_64 (CI) | SoftHSM 2.7.0 (macOS) / 2.x (CI) | `libsofthsm2.so`, digest verified via `token.VerifyModule` against the allowlist; macOS resolved digest `062e81f0…6470d` | Token label `yargi-test-token`; SoftHSM-reassigned slot bound exactly at enroll (per-run) | Self-signed RSA-2048, CKA_ID `a1b2c3d4`, fingerprint recorded per provisioning run; live `C_Sign` verified against cert public key | CRYPTO-VALID, NOT QUALIFIED (self-signed ⇒ trust indeterminate ⇒ QUARANTINED) |
 | Pilot | Pending | Owner token #1 | Pending | Pending | Pending | NOT AUTHORIZED |
 
 Support attaches to the exact OS, token model, reader, driver/module version and digest, slot identity, certificate fingerprint, and private-key `CKA_ID`; passing one combination does not qualify another.

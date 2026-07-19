@@ -23,16 +23,24 @@ const (
 )
 
 type Config struct {
-	Enabled         bool
-	Environment     string
-	Mode            Mode
-	Transport       Transport
-	SocketPath      string
-	StateDir        string
-	DatabasePath    string
-	ConfigPath      string
-	ShutdownTimeout time.Duration
-	Version         string
+	Enabled           bool
+	Environment       string
+	Mode              Mode
+	Transport         Transport
+	SocketPath        string
+	StateDir          string
+	DatabasePath      string
+	ConfigPath        string
+	ModuleAlias       string
+	ChallengeKeyPath  string
+	ChallengeKeyID    string
+	SupervisorKeyPath string
+	PINWindow         time.Duration
+	PlanTTL           time.Duration
+	AuthorizationTTL  time.Duration
+	CapabilityTTL     time.Duration
+	ShutdownTimeout   time.Duration
+	Version           string
 }
 
 func LoadFromEnv() (Config, error) {
@@ -46,6 +54,23 @@ func LoadFromEnv() (Config, error) {
 		return Config{}, err
 	}
 
+	pinWindow, err := parseDurationSeconds("SIGNERD_PIN_WINDOW_SECONDS", 90)
+	if err != nil {
+		return Config{}, err
+	}
+	planTTL, err := parseDurationSeconds("SIGNERD_PLAN_TTL_SECONDS", 30)
+	if err != nil {
+		return Config{}, err
+	}
+	authorizationTTL, err := parseDurationSeconds("SIGNERD_AUTHORIZATION_TTL_SECONDS", 30)
+	if err != nil {
+		return Config{}, err
+	}
+	capabilityTTL, err := parseDurationSeconds("SIGNERD_CAPABILITY_TTL_SECONDS", 60)
+	if err != nil {
+		return Config{}, err
+	}
+
 	stateDir := strings.TrimSpace(os.Getenv("SIGNERD_STATE_DIR"))
 	databasePath := strings.TrimSpace(os.Getenv("SIGNERD_DATABASE"))
 	if databasePath == "" && stateDir != "" {
@@ -53,16 +78,24 @@ func LoadFromEnv() (Config, error) {
 	}
 
 	cfg := Config{
-		Enabled:         enabled,
-		Environment:     envOrDefault("SIGNERD_ENVIRONMENT", "development"),
-		Mode:            Mode(envOrDefault("SIGNERD_MODE", string(ModeDisabled))),
-		Transport:       Transport(envOrDefault("SIGNERD_TRANSPORT", string(TransportUnix))),
-		SocketPath:      envOrDefault("SIGNERD_SOCKET", "/tmp/yargi-signerd/signerd.sock"),
-		StateDir:        stateDir,
-		DatabasePath:    databasePath,
-		ConfigPath:      strings.TrimSpace(os.Getenv("SIGNERD_CONFIG")),
-		ShutdownTimeout: time.Duration(shutdownSeconds) * time.Second,
-		Version:         "dev",
+		Enabled:           enabled,
+		Environment:       envOrDefault("SIGNERD_ENVIRONMENT", "development"),
+		Mode:              Mode(envOrDefault("SIGNERD_MODE", string(ModeDisabled))),
+		Transport:         Transport(envOrDefault("SIGNERD_TRANSPORT", string(TransportUnix))),
+		SocketPath:        envOrDefault("SIGNERD_SOCKET", "/tmp/yargi-signerd/signerd.sock"),
+		StateDir:          stateDir,
+		DatabasePath:      databasePath,
+		ConfigPath:        strings.TrimSpace(os.Getenv("SIGNERD_CONFIG")),
+		ModuleAlias:       strings.TrimSpace(os.Getenv("SIGNERD_MODULE_ALIAS")),
+		ChallengeKeyPath:  strings.TrimSpace(os.Getenv("SIGNERD_CHALLENGE_KEY")),
+		ChallengeKeyID:    envOrDefault("SIGNERD_CHALLENGE_KEY_ID", "challenge-1"),
+		SupervisorKeyPath: strings.TrimSpace(os.Getenv("SIGNERD_SUPERVISOR_KEY")),
+		PINWindow:         pinWindow,
+		PlanTTL:           planTTL,
+		AuthorizationTTL:  authorizationTTL,
+		CapabilityTTL:     capabilityTTL,
+		ShutdownTimeout:   time.Duration(shutdownSeconds) * time.Second,
+		Version:           "dev",
 	}
 	if value := strings.TrimSpace(os.Getenv("SIGNERD_VERSION")); value != "" {
 		cfg.Version = value
@@ -126,6 +159,12 @@ func (c Config) Validate() error {
 	if c.ConfigPath != "" && !filepath.IsAbs(c.ConfigPath) {
 		return errors.New("SIGNERD_CONFIG must be an absolute path")
 	}
+	if c.ChallengeKeyPath != "" && !filepath.IsAbs(c.ChallengeKeyPath) {
+		return errors.New("SIGNERD_CHALLENGE_KEY must be an absolute path")
+	}
+	if c.SupervisorKeyPath != "" && !filepath.IsAbs(c.SupervisorKeyPath) {
+		return errors.New("SIGNERD_SUPERVISOR_KEY must be an absolute path")
+	}
 
 	if c.ShutdownTimeout <= 0 {
 		return errors.New("shutdown timeout must be positive")
@@ -150,6 +189,14 @@ func parseBool(name string, fallback bool) (bool, error) {
 		return false, fmt.Errorf("invalid %s: %w", name, err)
 	}
 	return parsed, nil
+}
+
+func parseDurationSeconds(name string, fallbackSeconds int) (time.Duration, error) {
+	seconds, err := parsePositiveInt(name, fallbackSeconds)
+	if err != nil {
+		return 0, err
+	}
+	return time.Duration(seconds) * time.Second, nil
 }
 
 func parsePositiveInt(name string, fallback int) (int, error) {
