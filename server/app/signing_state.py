@@ -124,3 +124,36 @@ def cancellation_allowed(state: str) -> bool:
 def fastapi_can_transition(current: str, target: str) -> bool:
     """True only for transitions FastAPI itself is authoritative for (§7.2)."""
     return target in _FASTAPI_TRANSITIONS.get(current, frozenset())
+
+
+# Safe Turkish state copy for API clients. No vendor/module/token detail.
+STATE_LABELS_TR: dict[str, str] = {
+    UPLOADED: "Belge yüklendi",
+    VALIDATED: "Belge doğrulandı",
+    AWAITING_OWNER_CONFIRMATION: "Onayınız bekleniyor",
+    QUEUED: "Sıraya alındı",
+    WAITING_FOR_TOKEN: "Token bekleniyor",
+    PIN_REQUIRED: "PIN gerekli",
+    AUTHORIZATION_CONSUMED: "Yetki alındı, imzalanıyor",
+    SIGNING: "İmzalanıyor",
+    VERIFYING: "Doğrulanıyor",
+    COMPLETED: "Tamamlandı",
+    REJECTED_INPUT: "Belge reddedildi",
+    DECLINED: "Reddedildi",
+    CANCELLED: "İptal edildi",
+    CONFIRMATION_EXPIRED: "Onay süresi doldu",
+    APPROVAL_EXPIRED: "Yetki süresi doldu",
+    PIN_WINDOW_EXPIRED: "PIN süresi doldu",
+    PIN_REJECTED: "PIN reddedildi",
+    TOKEN_LOCKED: "Token kilitlendi",
+    TOKEN_UNAVAILABLE: "Token kullanılamıyor",
+    FAILED_PRE_SIGN: "İmza öncesi hata",
+    FAILED_POST_SIGN: "İmza sonrası hata",
+    OUTCOME_UNKNOWN: "Sonuç belirsiz",
+    QUARANTINED: "Karantinada",
+    TIMESTAMPING: "Zaman damgası",
+}
+
+
+def label_tr(state: str) -> str:
+    return STATE_LABELS_TR.get(state, state)

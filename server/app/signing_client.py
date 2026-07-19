@@ -52,7 +52,11 @@ class CommandAuthError(TransportIdentityError):
 
 
 class SignerUnavailable(Exception):
-    """The command provably did not reach signerd (connect/timeout/transport)."""
+    """Signerd could not be reached or the delivery outcome is ambiguous."""
+
+
+class SignerUnreached(SignerUnavailable):
+    """The command provably did not reach signerd (connect refused/no socket)."""
 
 
 class SignerError(Exception):
@@ -251,6 +255,36 @@ class SignerClient:
     async def cancel_job(self, job_id: str) -> dict:
         return await self._request("POST", f"/v1/jobs/{job_id}/cancel")
 
+    async def get_pin_challenge(self, job_id: str) -> dict:
+        return await self._request("GET", f"/v1/jobs/{job_id}/pin-challenge")
+
+    async def authorize(self, job_id: str, challenge_id: str, pin_jwe: str) -> dict:
+        """Synchronous PIN-envelope relay. The envelope is never logged or stored.
+
+        Distinguishes provably-unreached (raise ``SignerUnreached``) from an
+        ambiguous outcome (return ``delivery_unknown``) so the caller can apply
+        the §8.1 reconciliation rules without ever replaying a second envelope.
+        """
+        import json as _json
+
+        path = f"/v1/jobs/{job_id}/authorize"
+        body = _json.dumps({"challenge_id": challenge_id, "pin_jwe": pin_jwe}).encode()
+        headers = {**self._signer.sign("POST", path, "", body), "Content-Type": "application/json"}
+        try:
+            response = await self._client.request(
+                "POST", f"{self._base_url}{path}", content=body, headers=headers
+            )
+        except (httpx.ConnectError, httpx.ConnectTimeout, FileNotFoundError) as error:
+            raise SignerUnreached(str(error)) from error
+        except httpx.TransportError:
+            # Sent but no clear response: ambiguous, must not resend.
+            return {"authorization_status": "delivery_unknown"}
+        finally:
+            del body  # drop the envelope reference promptly
+        if response.status_code >= 400:
+            raise _safe_signer_error(response)
+        return response.json()
+
     async def _request(
         self,
         method: str,
@@ -273,7 +307,7 @@ class SignerClient:
                 method, url, content=body, headers=request_headers
             )
         except (httpx.ConnectError, httpx.ConnectTimeout, FileNotFoundError) as error:
-            raise SignerUnavailable(str(error)) from error
+            raise SignerUnreached(str(error)) from error
         except httpx.TransportError as error:
             # Ambiguous: the command may or may not have been applied.
             raise SignerUnavailable(str(error)) from error

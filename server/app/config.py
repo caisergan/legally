@@ -76,8 +76,11 @@ class Settings(BaseSettings):
     signing_command_key_id: str = "fastapi-cmd-1"  # kid FastAPI signs signer commands with
     signing_signer_command_pubkeys: str = ""  # "kid:hex,kid:hex" pinned signerd keys
     signing_challenge_pubkeys: str = ""  # pinned signerd challenge-verification keyset
+    signing_challenge_jwks: str = ""  # pinned challenge-verification JWKS (JSON) served to the SPA
     signing_capability_secret: str = ""  # broker capability HMAC secret (required when enabled)
     signing_capability_key_id: str = "broker-cap-1"
+    signing_upload_rate_per_minute: int = 20  # per-user artifact upload rate limit
+    signing_max_json_body_bytes: int = 65_536
 
 
 settings = Settings()

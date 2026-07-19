@@ -327,6 +327,9 @@ class SigningRequest(Base):
     last_event_sequence: Mapped[int] = mapped_column(Integer, default=0)
     signer_event_cursor: Mapped[int] = mapped_column(Integer, default=0)
     retained: Mapped[bool] = mapped_column(Boolean, default=False)
+    # PIN relay is synchronous and never queued; this durable marker blocks a
+    # second envelope after an ambiguous delivery (§8.1). None | pending_unknown | consumed.
+    pin_relay_status: Mapped[str | None] = mapped_column(String, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow, onupdate=utcnow)
     queued_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
