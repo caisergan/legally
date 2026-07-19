@@ -10,6 +10,7 @@ const ChatView = lazy(() => import("./views/ChatView"));
 const SearchView = lazy(() => import("./views/SearchView"));
 const HistoryView = lazy(() => import("./views/HistoryView"));
 const BookmarksView = lazy(() => import("./views/BookmarksView"));
+const SigningView = lazy(() => import("./views/SigningView"));
 const SettingsView = lazy(() => import("./views/SettingsView"));
 const DocPanel = lazy(() => import("./components/DocPanel"));
 
@@ -30,6 +31,7 @@ function ActiveView() {
     case "search": return <SearchView />;
     case "history": return <HistoryView />;
     case "bookmarks": return <BookmarksView />;
+    case "signing": return <SigningView />;
     case "settings": return <SettingsView />;
   }
 }

@@ -426,3 +426,41 @@ a:hover{color:var(--primary-strong)}
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
 }
+
+/* E-imza (signing) */
+.signing-head{display:flex;align-items:center;gap:10px;margin-bottom:2px}
+.signing-badge{font-size:10.5px;font-weight:600;letter-spacing:.02em;text-transform:uppercase;color:var(--gold);background:var(--gold-soft);border:1px solid var(--border);border-radius:999px;padding:2px 9px}
+.field-hint{font-weight:400;color:var(--ink-3);margin-left:4px}
+.signing-form{display:flex;flex-direction:column;gap:14px}
+.signing-form-actions{display:flex;justify-content:flex-end}
+.signing-file{padding:8px 10px;font-size:12.5px}
+.signing-cert-single{border:1px solid var(--border);border-radius:10px;background:var(--surface-2);padding:9px 12px;font-size:12.5px;color:var(--ink-2)}
+.signing-status{display:flex;align-items:center;gap:9px;border:1px solid var(--border);border-radius:10px;padding:10px 12px;font-size:13px;font-weight:500}
+.signing-status--pending{background:var(--amber-soft);color:var(--amber);border-color:var(--amber)}
+.signing-status--success{background:var(--green-soft);color:var(--green);border-color:var(--green)}
+.signing-status--warn{background:var(--gold-soft);color:var(--gold);border-color:var(--border-strong)}
+.signing-status--error{background:var(--danger-soft);color:var(--danger);border-color:var(--danger)}
+.signing-manifest{display:grid;grid-template-columns:repeat(2,1fr);gap:8px 20px;margin:14px 0 4px}
+.signing-manifest>div{display:flex;flex-direction:column;gap:2px;min-width:0}
+.signing-manifest dt{font-size:11px;font-weight:600;color:var(--ink-3)}
+.signing-manifest dd{margin:0;font-size:12.5px;color:var(--ink);overflow-wrap:anywhere}
+.signing-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.signing-timeline{margin-top:16px;border-top:1px solid var(--border);padding-top:12px;display:flex;flex-direction:column;gap:8px}
+.signing-timeline-row{display:flex;align-items:center;gap:10px;font-size:12.5px}
+.signing-timeline-dot{width:7px;height:7px;border-radius:50%;background:var(--primary);flex:0 0 auto}
+.signing-timeline-label{color:var(--ink-2);flex:1}
+.signing-timeline-time{color:var(--ink-3);font-family:var(--mono);font-size:11px}
+.signing-request-list{display:flex;flex-direction:column;gap:4px}
+.signing-request-row{display:flex;align-items:center;gap:11px;width:100%;text-align:left;border:1px solid transparent;border-radius:10px;background:transparent;padding:9px 11px;cursor:pointer;transition:background .12s,border-color .12s}
+.signing-request-row:hover{background:var(--surface-2)}
+.signing-request-row.active{background:var(--surface-2);border-color:var(--border)}
+.signing-request-main{display:flex;flex-direction:column;gap:1px;flex:1;min-width:0}
+.signing-request-id{font-size:12.5px;color:var(--ink)}
+.signing-request-meta{font-size:11px;color:var(--ink-3)}
+.signing-request-state{font-size:11.5px;color:var(--ink-2);white-space:nowrap}
+.signing-dot{width:9px;height:9px;border-radius:50%;flex:0 0 auto;background:var(--ink-3)}
+.signing-dot--pending{background:var(--amber)}
+.signing-dot--success{background:var(--green)}
+.signing-dot--warn{background:var(--gold)}
+.signing-dot--error{background:var(--danger)}
+@media (max-width:640px){.signing-manifest{grid-template-columns:1fr}}

@@ -9,6 +9,7 @@ const titles: Record<AppView, string> = {
   search: "Arama",
   history: "Geçmiş",
   bookmarks: "Kayıtlı",
+  signing: "E-İmza",
   settings: "Ayarlar",
 };
 

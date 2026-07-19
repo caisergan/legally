@@ -17,7 +17,7 @@ import type {
 } from "../lib/types";
 import { useAuth } from "./auth";
 
-export type AppView = "chat" | "search" | "history" | "bookmarks" | "settings";
+export type AppView = "chat" | "search" | "history" | "bookmarks" | "signing" | "settings";
 export type Theme = "light" | "dark";
 
 export interface SearchHandoff {

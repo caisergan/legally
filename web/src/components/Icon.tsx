@@ -17,6 +17,7 @@ export type IconName =
   | "lock"
   | "menu"
   | "moon"
+  | "pen"
   | "plus"
   | "refresh"
   | "scales"
@@ -51,6 +52,8 @@ export function Icon({ name, size = 18, filled = false, ...props }: IconProps) {
       return <svg {...common}><path d="M12 3v18M7 21h10M12 6l-7 2 2.5 5a3 3 0 0 1-5 0L12 6zm0 0l7 2-2.5 5a3 3 0 0 0 5 0L12 6z" /></svg>;
     case "plus":
       return <svg {...common}><path d="M12 5v14M5 12h14" /></svg>;
+    case "pen":
+      return <svg {...common}><path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z" /></svg>;
     case "chat":
       return <svg {...common}><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg>;
     case "search":

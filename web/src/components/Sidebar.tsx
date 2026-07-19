@@ -10,6 +10,7 @@ const navItems: Array<{ view: AppView; label: string; icon: IconName }> = [
   { view: "search", label: "Arama", icon: "search" },
   { view: "history", label: "Geçmiş", icon: "history" },
   { view: "bookmarks", label: "Kayıtlı", icon: "bookmark" },
+  { view: "signing", label: "E-İmza", icon: "pen" },
 ];
 
 interface ConversationGroup {
