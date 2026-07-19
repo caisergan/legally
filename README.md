@@ -35,3 +35,19 @@ uv run uvicorn app.main:app --port 8600
 Open [http://127.0.0.1:8600](http://127.0.0.1:8600).
 
 For frontend development, run `npm run dev` from `web/` while the backend runs on port 8600. The Vite development server proxies `/api` requests to `http://127.0.0.1:8600`.
+
+## E-imza development
+
+The e-imza work is an isolated, disabled-by-default Go service under [`signing-service/`](signing-service/). It is not yet connected to FastAPI or React and does not currently access PKCS#11, accept PINs, or make production/legal-validity claims.
+
+```sh
+go -C signing-service test ./...
+go -C signing-service test -race ./...
+go -C signing-service vet ./...
+```
+
+Architecture, phase gates, provenance, and non-claims are recorded in:
+
+- [`docs/EIMZA_INTEGRATION_PLAN.md`](docs/EIMZA_INTEGRATION_PLAN.md)
+- [`docs/tasks/EIMZA_BUILD_LEDGER.md`](docs/tasks/EIMZA_BUILD_LEDGER.md)
+- [`signing-service/third_party/eimza-go/UPSTREAM.md`](signing-service/third_party/eimza-go/UPSTREAM.md)
