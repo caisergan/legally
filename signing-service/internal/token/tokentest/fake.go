@@ -59,14 +59,16 @@ func NewIdentity(subject, ckaID string, notBefore, notAfter time.Time) (Identity
 }
 
 type fakeKey struct {
-	obj  token.KeyObject
-	priv *rsa.PrivateKey
+	obj    token.KeyObject
+	priv   *rsa.PrivateKey
+	hidden bool // simulates CKA_PRIVATE: signable, but not listed pre-login
 }
 
 type fakeSlot struct {
-	info  token.SlotInfo
-	certs []token.CertObject
-	keys  []fakeKey
+	info    token.SlotInfo
+	certs   []token.CertObject
+	keys    []fakeKey
+	pubKeys []token.KeyObject
 }
 
 // FakeBackend is an in-memory token.Backend.
@@ -101,6 +103,22 @@ func (f *FakeBackend) AddCredential(slotID uint, id Identity, exposePublic bool)
 	return f.AddKey(slotID, key, id.Priv)
 }
 
+// AddHiddenCredential adds a cert plus a private key that signs but is hidden
+// from Objects (as a CKA_PRIVATE key is pre-login) and a visible public-key
+// object carrying the RSA public attributes, matching a realistic token.
+func (f *FakeBackend) AddHiddenCredential(slotID uint, id Identity) *FakeBackend {
+	f.AddCert(slotID, id.CKAID, id.CertDER)
+	slot := f.slots[slotID]
+	slot.keys = append(slot.keys, fakeKey{obj: token.KeyObject{CKAID: id.CKAID, KeyType: "RSA"}, priv: id.Priv, hidden: true})
+	slot.pubKeys = append(slot.pubKeys, token.KeyObject{
+		CKAID:       id.CKAID,
+		KeyType:     "RSA",
+		RSAModulus:  id.Priv.N.Bytes(),
+		RSAExponent: big.NewInt(int64(id.Priv.E)).Bytes(),
+	})
+	return f
+}
+
 func (f *FakeBackend) AddCert(slotID uint, ckaID, der []byte) *FakeBackend {
 	slot := f.slots[slotID]
 	slot.certs = append(slot.certs, token.CertObject{CKAID: ckaID, DER: der})
@@ -130,8 +148,12 @@ func (f *FakeBackend) Objects(slotID uint) (token.SlotObjects, error) {
 	}
 	objects := token.SlotObjects{Certificates: append([]token.CertObject(nil), slot.certs...)}
 	for _, key := range slot.keys {
+		if key.hidden {
+			continue // private object not visible without login
+		}
 		objects.PrivateKeys = append(objects.PrivateKeys, key.obj)
 	}
+	objects.PublicKeys = append(objects.PublicKeys, slot.pubKeys...)
 	return objects, nil
 }
 

@@ -35,10 +35,14 @@ type KeyObject struct {
 	RSAExponent []byte
 }
 
-// SlotObjects holds the certificate and private-key objects in one slot.
+// SlotObjects holds the certificate, private-key, and public-key objects in one
+// slot. On tokens that mark private keys CKA_PRIVATE (hidden until login), the
+// public-key object stays visible and carries the same CKA_ID and RSA public
+// attributes, so enrollment can still bind the credential without a PIN.
 type SlotObjects struct {
 	Certificates []CertObject
 	PrivateKeys  []KeyObject
+	PublicKeys   []KeyObject
 }
 
 // Backend is the minimal PKCS#11 surface needed for enrollment and proof.

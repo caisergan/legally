@@ -1,12 +1,13 @@
 //go:build pkcs11
 
-// Command yargi-softhsm-provision is a TEST-ONLY helper that writes an
-// RSA private-key object (viewable pre-login, CKA_PRIVATE=false, but
-// CKA_SENSITIVE material) and its X.509 certificate into a SoftHSM token via
-// C_CreateObject, so the reviewed enrollment path (token.Resolve, which
-// enumerates objects without login) can bind the credential. It never touches
-// the production signing path and only runs under the pkcs11 build tag. Real
-// qualified tokens that hide private-key objects pre-login are out of scope.
+// Command yargi-softhsm-provision is a TEST-ONLY helper that writes a realistic
+// RSA credential into a SoftHSM token via C_CreateObject: a private-key object
+// that is CKA_PRIVATE (hidden until login) and CKA_SENSITIVE, a matching public-
+// key object that stays visible pre-login, and the X.509 certificate. This
+// mirrors a real qualified token, so the reviewed enrollment path (token.Resolve
+// falling back to the public-key object) can bind the credential without a PIN.
+// It never touches the production signing path and only runs under the pkcs11
+// build tag.
 package main
 
 import (
@@ -80,7 +81,7 @@ func main() {
 		pkcs11.NewAttribute(pkcs11.CKA_CLASS, pkcs11.CKO_PRIVATE_KEY),
 		pkcs11.NewAttribute(pkcs11.CKA_KEY_TYPE, pkcs11.CKK_RSA),
 		pkcs11.NewAttribute(pkcs11.CKA_TOKEN, true),
-		pkcs11.NewAttribute(pkcs11.CKA_PRIVATE, false),
+		pkcs11.NewAttribute(pkcs11.CKA_PRIVATE, true),
 		pkcs11.NewAttribute(pkcs11.CKA_SENSITIVE, true),
 		pkcs11.NewAttribute(pkcs11.CKA_EXTRACTABLE, false),
 		pkcs11.NewAttribute(pkcs11.CKA_SIGN, true),
@@ -97,6 +98,21 @@ func main() {
 	}
 	if _, err := ctx.CreateObject(session, keyTemplate); err != nil {
 		log.Fatalf("create private key object: %v", err)
+	}
+
+	pubTemplate := []*pkcs11.Attribute{
+		pkcs11.NewAttribute(pkcs11.CKA_CLASS, pkcs11.CKO_PUBLIC_KEY),
+		pkcs11.NewAttribute(pkcs11.CKA_KEY_TYPE, pkcs11.CKK_RSA),
+		pkcs11.NewAttribute(pkcs11.CKA_TOKEN, true),
+		pkcs11.NewAttribute(pkcs11.CKA_PRIVATE, false),
+		pkcs11.NewAttribute(pkcs11.CKA_VERIFY, true),
+		pkcs11.NewAttribute(pkcs11.CKA_ID, ckaID),
+		pkcs11.NewAttribute(pkcs11.CKA_LABEL, "yargi-test-key"),
+		pkcs11.NewAttribute(pkcs11.CKA_MODULUS, priv.N.Bytes()),
+		pkcs11.NewAttribute(pkcs11.CKA_PUBLIC_EXPONENT, big.NewInt(int64(priv.E)).Bytes()),
+	}
+	if _, err := ctx.CreateObject(session, pubTemplate); err != nil {
+		log.Fatalf("create public key object: %v", err)
 	}
 
 	certTemplate := []*pkcs11.Attribute{

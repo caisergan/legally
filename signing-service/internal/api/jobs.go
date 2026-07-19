@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"errors"
 	"net/http"
 	"strconv"
@@ -45,7 +46,9 @@ func (s *Server) handleCreateJob(response http.ResponseWriter, request *http.Req
 		return
 	}
 	if created {
-		if err := s.coordinator.Submit(request.Context(), job); err != nil {
+		// The signing work outlives this request; detach it from the request's
+		// cancellation so the job is not aborted when the response is sent.
+		if err := s.coordinator.Submit(context.WithoutCancel(request.Context()), job); err != nil {
 			writeError(response, newSafeError(http.StatusServiceUnavailable, errcodes.ServiceUnavailable, "failed to queue job"))
 			return
 		}

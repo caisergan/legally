@@ -40,6 +40,21 @@ type Selection struct {
 	keyExponent []byte
 }
 
+// matchKeyByCKAID returns the single key object whose CKA_ID matches, nil when
+// none match, or ErrAmbiguousKey when more than one matches.
+func matchKeyByCKAID(keys []KeyObject, ckaID []byte) (*KeyObject, error) {
+	var matched *KeyObject
+	for i := range keys {
+		if bytes.Equal(keys[i].CKAID, ckaID) {
+			if matched != nil {
+				return nil, ErrAmbiguousKey
+			}
+			matched = &keys[i]
+		}
+	}
+	return matched, nil
+}
+
 // Resolve binds exactly one slot, certificate, and private key or fails closed.
 func Resolve(backend Backend, criteria Criteria) (Selection, error) {
 	slots, err := backend.Slots()
@@ -78,13 +93,21 @@ func Resolve(backend Backend, criteria Criteria) (Selection, error) {
 		return Selection{}, ErrCertificateNotFound
 	}
 
-	var matchedKey *KeyObject
-	for i := range objects.PrivateKeys {
-		if bytes.Equal(objects.PrivateKeys[i].CKAID, criteria.KeyCKAID) {
-			if matchedKey != nil {
-				return Selection{}, ErrAmbiguousKey
-			}
-			matchedKey = &objects.PrivateKeys[i]
+	// Match the key by CKA_ID. Prefer the private-key object when it is visible;
+	// on tokens that hide private keys until login (CKA_PRIVATE) fall back to the
+	// public-key object, which is enough to bind the tuple and cross-check the
+	// public half against the certificate. The private half is proven at
+	// VerifyKeyMatch (public-attribute check or a PIN-bearing signature) and again
+	// at every C_Sign, which resolves the key by CKA_ID under an authenticated
+	// session.
+	matchedKey, err := matchKeyByCKAID(objects.PrivateKeys, criteria.KeyCKAID)
+	if err != nil {
+		return Selection{}, err
+	}
+	if matchedKey == nil {
+		matchedKey, err = matchKeyByCKAID(objects.PublicKeys, criteria.KeyCKAID)
+		if err != nil {
+			return Selection{}, err
 		}
 	}
 	if matchedKey == nil {

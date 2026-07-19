@@ -13,6 +13,8 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"strconv"
+	"strings"
 	"syscall"
 
 	"github.com/caisergan/legally/signing-service/internal/api"
@@ -76,6 +78,15 @@ func main() {
 		log.Printf("command authentication enabled: %d pinned key(s)", len(keys))
 	} else {
 		log.Print("command authentication disabled (no SIGNERD_COMMAND_PUBKEYS): relying on the private socket")
+	}
+
+	if cfg.AllowedPeerUIDs != "" {
+		uids, err := parseUIDs(cfg.AllowedPeerUIDs)
+		if err != nil {
+			log.Fatalf("parse allowed peer uids: %v", err)
+		}
+		server.SetPeerAllowlist(uids)
+		log.Printf("peer-credential allowlist enabled: %d uid(s)", len(uids))
 	}
 
 	log.Printf("starting yargi-signerd version=%s mode=%s transport=%s module=%s", cfg.Version, cfg.Mode, cfg.Transport, cfg.ModuleAlias)
@@ -179,6 +190,22 @@ func loadChallengeKey(path string) (*ecdsa.PrivateKey, error) {
 		return nil, errors.New("challenge key must be a P-256 key for ES256")
 	}
 	return key, nil
+}
+
+func parseUIDs(spec string) ([]int, error) {
+	var uids []int
+	for _, part := range strings.Split(spec, ",") {
+		part = strings.TrimSpace(part)
+		if part == "" {
+			continue
+		}
+		uid, err := strconv.Atoi(part)
+		if err != nil {
+			return nil, fmt.Errorf("invalid uid %q: %w", part, err)
+		}
+		uids = append(uids, uid)
+	}
+	return uids, nil
 }
 
 func loadSupervisorKey(path string) ([]byte, error) {

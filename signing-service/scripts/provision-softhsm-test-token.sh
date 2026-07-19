@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 # Provision an isolated, TEST-ONLY SoftHSM token for the live signing end-to-end
 # test (test/integration/live_softhsm_test.go, build tag pkcs11). It creates a
-# self-signed RSA-2048 credential whose PKCS#11 private-key object is viewable
-# pre-login (CKA_PRIVATE unset) so enrollment's token.Resolve can bind it, while
-# the key material stays CKA_SENSITIVE. This is a self-signed test credential:
+# self-signed RSA-2048 credential that mirrors a real qualified token: the
+# private-key object is CKA_PRIVATE (hidden until login) and CKA_SENSITIVE, with
+# a matching public-key object left visible pre-login so enrollment's
+# token.Resolve can bind it without a PIN. This is a self-signed test credential:
 # its output is never a qualified signature and always stays QUARANTINED.
 #
 # Requires: softhsm2-util, openssl, and a Go toolchain (for the pkcs11-tagged
@@ -40,10 +41,9 @@ openssl req -x509 -new -key "$WORKDIR/key.p8" -sha256 -days 365 \
   -subj "/CN=Ege Ayyildiz/O=Yargi Test/C=TR" -out "$WORKDIR/cert.pem" 2>/dev/null
 openssl x509 -in "$WORKDIR/cert.pem" -outform DER -out "$WORKDIR/cert.der"
 
-# Private key object (viewable pre-login: CKA_PRIVATE=false, CKA_SENSITIVE
-# material) plus the certificate, created via C_CreateObject. pkcs11-tool cannot
-# clear CKA_PRIVATE, so the reviewed enrollment path (token.Resolve, which
-# enumerates without login) requires this helper.
+# Hidden CKA_PRIVATE private key + visible public-key object + certificate,
+# created via C_CreateObject. Mirrors a real qualified token; enrollment binds
+# the credential via the public-key object (token.Resolve fallback).
 ( cd "$REPO_ROOT" && go run -tags pkcs11 ./cmd/yargi-softhsm-provision \
   --module "$MODULE" --token-label "$LABEL" --pin "$USERPIN" \
   --key-der "$WORKDIR/key.der" --cert-der "$WORKDIR/cert.der" --id "$CKAID" >/dev/null )

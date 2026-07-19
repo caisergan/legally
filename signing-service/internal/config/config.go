@@ -38,6 +38,7 @@ type Config struct {
 	CommandPubKeys    string
 	CommandSkew       time.Duration
 	MaxArtifactBytes  int64
+	AllowedPeerUIDs   string
 	PINWindow         time.Duration
 	PlanTTL           time.Duration
 	AuthorizationTTL  time.Duration
@@ -104,6 +105,7 @@ func LoadFromEnv() (Config, error) {
 		CommandPubKeys:    strings.TrimSpace(os.Getenv("SIGNERD_COMMAND_PUBKEYS")),
 		CommandSkew:       commandSkew,
 		MaxArtifactBytes:  int64(maxArtifactBytes),
+		AllowedPeerUIDs:   strings.TrimSpace(os.Getenv("SIGNERD_ALLOWED_UIDS")),
 		PINWindow:         pinWindow,
 		PlanTTL:           planTTL,
 		AuthorizationTTL:  authorizationTTL,

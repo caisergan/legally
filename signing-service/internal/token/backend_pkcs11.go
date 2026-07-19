@@ -121,6 +121,35 @@ func (b *pkcs11Backend) Objects(slotID uint) (SlotObjects, error) {
 		}
 		objects.PrivateKeys = append(objects.PrivateKeys, key)
 	}
+
+	pubHandles, err := b.findObjects(session, []*pkcs11.Attribute{
+		pkcs11.NewAttribute(pkcs11.CKA_CLASS, pkcs11.CKO_PUBLIC_KEY),
+	})
+	if err != nil {
+		return SlotObjects{}, err
+	}
+	for _, handle := range pubHandles {
+		key := KeyObject{KeyType: "RSA"}
+		attrs, err := b.ctx.GetAttributeValue(session, handle, []*pkcs11.Attribute{
+			pkcs11.NewAttribute(pkcs11.CKA_ID, nil),
+			pkcs11.NewAttribute(pkcs11.CKA_MODULUS, nil),
+			pkcs11.NewAttribute(pkcs11.CKA_PUBLIC_EXPONENT, nil),
+		})
+		if err != nil {
+			continue
+		}
+		for _, attr := range attrs {
+			switch attr.Type {
+			case pkcs11.CKA_ID:
+				key.CKAID = append([]byte(nil), attr.Value...)
+			case pkcs11.CKA_MODULUS:
+				key.RSAModulus = append([]byte(nil), attr.Value...)
+			case pkcs11.CKA_PUBLIC_EXPONENT:
+				key.RSAExponent = append([]byte(nil), attr.Value...)
+			}
+		}
+		objects.PublicKeys = append(objects.PublicKeys, key)
+	}
 	return objects, nil
 }
 

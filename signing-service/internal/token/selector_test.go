@@ -39,6 +39,48 @@ func TestResolveExactMatch(t *testing.T) {
 	}
 }
 
+func TestResolveViaPublicKeyWhenPrivateHidden(t *testing.T) {
+	id := mustIdentity(t, "Hidden Key", "ckaid-hidden")
+	backend := tokentest.New("1234").AddSlot(5, "SERIAL-H", "Token H")
+	backend.AddHiddenCredential(5, id)
+
+	objects, err := backend.Objects(5)
+	if err != nil {
+		t.Fatalf("objects: %v", err)
+	}
+	if len(objects.PrivateKeys) != 0 {
+		t.Fatalf("private key should be hidden pre-login, got %d", len(objects.PrivateKeys))
+	}
+	if len(objects.PublicKeys) != 1 || len(objects.Certificates) != 1 {
+		t.Fatalf("expected one visible public key and cert, got %d/%d", len(objects.PublicKeys), len(objects.Certificates))
+	}
+
+	sel, err := token.Resolve(backend, token.Criteria{SlotID: 5, CertificateSHA256: id.Fingerprint, KeyCKAID: id.CKAID})
+	if err != nil {
+		t.Fatalf("resolve via public key: %v", err)
+	}
+	if string(sel.KeyCKAID) != "ckaid-hidden" || sel.PublicKeyBits != 2048 {
+		t.Fatalf("wrong binding via public key: %+v", sel)
+	}
+
+	pinCalled := false
+	if err := token.VerifyKeyMatch(backend, sel, func() (string, error) { pinCalled = true; return "1234", nil }); err != nil {
+		t.Fatalf("verify key match: %v", err)
+	}
+	if pinCalled {
+		t.Fatal("public attributes should verify without a PIN")
+	}
+
+	if _, err := backend.Sign(5, id.CKAID, "1234", make([]byte, 32)); err != nil {
+		t.Fatalf("hidden private key must still sign at C_Sign time: %v", err)
+	}
+
+	// A wrong CKA_ID still fails closed even with the public-key fallback.
+	if _, err := token.Resolve(backend, token.Criteria{SlotID: 5, CertificateSHA256: id.Fingerprint, KeyCKAID: []byte("nope")}); !errors.Is(err, token.ErrKeyNotFound) {
+		t.Fatalf("error = %v, want ErrKeyNotFound", err)
+	}
+}
+
 func TestResolveNoFallbackToFirstSlot(t *testing.T) {
 	id := mustIdentity(t, "E. A.", "ckaid-1")
 	backend := tokentest.New("1234").AddSlot(0, "SERIAL-0", "Token 0").AddSlot(1, "SERIAL-1", "Token 1")

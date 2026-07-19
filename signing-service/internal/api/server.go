@@ -20,9 +20,12 @@ import (
 	"github.com/caisergan/legally/signing-service/internal/credentials"
 	"github.com/caisergan/legally/signing-service/internal/errcodes"
 	"github.com/caisergan/legally/signing-service/internal/jobs"
+	"github.com/caisergan/legally/signing-service/internal/peercred"
 	"github.com/caisergan/legally/signing-service/internal/policy"
 	"github.com/caisergan/legally/signing-service/internal/signer"
 )
+
+type peerCredKey struct{}
 
 // CredentialInventory supplies safe public credential metadata.
 type CredentialInventory interface {
@@ -45,6 +48,7 @@ type Server struct {
 	broker              *artifacts.Broker
 	maxArtifactBytes    int64
 	verifier            *commandauth.Verifier
+	allowedUIDs         map[int]bool
 }
 
 func NewServer(cfg config.Config) *Server {
@@ -66,6 +70,7 @@ func NewServer(cfg config.Config) *Server {
 	mux.HandleFunc("POST /v1/jobs/{job_id}/cancel", server.handleCancelJob)
 	server.httpServer = &http.Server{
 		Handler:           server.authWrap(mux),
+		ConnContext:       server.connContext,
 		ReadHeaderTimeout: 5 * time.Second,
 		ReadTimeout:       30 * time.Second,
 		WriteTimeout:      30 * time.Second,
@@ -74,12 +79,32 @@ func NewServer(cfg config.Config) *Server {
 	return server
 }
 
+// connContext captures the peer's OS credentials once per connection when a UID
+// allowlist is installed, so authWrap can authorize every request on it.
+func (s *Server) connContext(ctx context.Context, conn net.Conn) context.Context {
+	if len(s.allowedUIDs) == 0 {
+		return ctx
+	}
+	creds, err := peercred.FromConn(conn)
+	if err != nil {
+		return context.WithValue(ctx, peerCredKey{}, peercred.PeerCredentials{PID: -1, UID: -1, GID: -1})
+	}
+	return context.WithValue(ctx, peerCredKey{}, creds)
+}
+
 // authWrap verifies asymmetric command authentication when a verifier is
 // installed. /v1/health stays open for local readiness. It buffers the body so
 // the signature can be checked over the exact received bytes before the handler
 // reads them; the buffer is bounded by the artifact size limit.
 func (s *Server) authWrap(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(response http.ResponseWriter, request *http.Request) {
+		if len(s.allowedUIDs) > 0 {
+			creds, ok := request.Context().Value(peerCredKey{}).(peercred.PeerCredentials)
+			if !ok || creds.UID < 0 || !s.allowedUIDs[creds.UID] {
+				writeError(response, newSafeError(http.StatusForbidden, errcodes.Unauthorized, "peer not authorized"))
+				return
+			}
+		}
 		if s.verifier == nil || (request.Method == http.MethodGet && request.URL.Path == "/v1/health") {
 			next.ServeHTTP(response, request)
 			return
@@ -136,6 +161,20 @@ func (s *Server) SetArtifactBroker(broker *artifacts.Broker, maxBytes int64) {
 // route except GET /v1/health requires a valid signed command.
 func (s *Server) SetCommandVerifier(verifier *commandauth.Verifier) {
 	s.verifier = verifier
+}
+
+// SetPeerAllowlist enforces that every connecting peer's OS uid is in the given
+// set. An empty list disables the check (the private socket remains the control).
+func (s *Server) SetPeerAllowlist(uids []int) {
+	if len(uids) == 0 {
+		s.allowedUIDs = nil
+		return
+	}
+	allowed := make(map[int]bool, len(uids))
+	for _, uid := range uids {
+		allowed[uid] = true
+	}
+	s.allowedUIDs = allowed
 }
 
 func (s *Server) ListenAndServe(ctx context.Context) error {
