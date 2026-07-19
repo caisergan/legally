@@ -2,11 +2,23 @@
 
 **Status:** Not yet qualified. Empty evidence cells are release blockers, not implied passes.
 
+## Phase 1B automated evidence (2026-07-19)
+
+Reproducible in `signing-service`: two independent full PAdES validators now both
+accept the eimza-go signature (`TestTwoIndependentValidatorMatrix`), the trust
+outcome is explicitly fail-closed (`TestTrustOutcomeFailsClosed`), the versioned
+corpus signs/rejects as specified (`TestCorpus*`, `testdata/pdf/manifest.json`,
+version `yargi-pdf-corpus-v1`), and seeded fuzz targets over the parser, preflight,
+and verify surfaces run without panics. Validator wrappers:
+`testdata/validators/{pdfsig,pyhanko}_validate.sh`; pyHanko wrapper:
+`tools/pades_validate_pyhanko.py`. Trust store is empty and no revocation is
+fetched, so release stays refused and output stays quarantined.
+
 ## Validator matrix
 
 | Fixture/profile | Signing backend | Internal verify | Validator 1 | Validator 2 | Result | Evidence |
 |---|---|---|---|---|---|---|
-| Controlled classic-xref PDF / B-B | Software test key | Pass | Poppler `pdfsig` 26.04.0: signature valid; issuer unknown (reconfirmed 2026-07-19) | Second full PAdES validator pending | PARTIAL — NOT QUALIFIED | LibreSSL 3.3.6 also verified detached CMS; 2026-07-19 ephemeral output SHA-256 `81044f556c0fdf733a09f0e34006657e08d487e918141e60f754237792274f97`; self-signed test certificate intentionally has no trusted issuer |
+| Controlled classic-xref PDF / B-B | Software test key | Pass | Poppler `pdfsig` 26.04.0: signature valid, entire-file coverage; issuer unknown (reconfirmed 2026-07-19) | pyHanko 0.35.2: crypto valid, coverage `ENTIRE_FILE`; trust/revocation indeterminate (self-signed) | PARTIAL — NOT QUALIFIED (both validators accept crypto; trust indeterminate; SoftHSM/live pending) | Both validators reject a one-byte-tampered copy; LibreSSL 3.3.6 also verified detached CMS; self-signed test certificate intentionally has no trusted issuer |
 | Corpus PDFs / B-B | SoftHSM | Pending | Pending | Pending | NOT QUALIFIED | — |
 | Controlled PDFs / B-B | Real owner token | Pending | Adobe Reader pending | ETSI-aware validator pending | NOT QUALIFIED | — |
 | Controlled PDFs / B-T | Real owner token + TSA | Pending | Pending | Pending | DISABLED | — |
@@ -17,18 +29,23 @@ Internal validation by the imported source does not satisfy either independent-v
 
 Each supported input class needs a stored non-sensitive fixture or reproducible generator, input/output SHA-256, tool versions, and evidence report.
 
+Corpus `yargi-pdf-corpus-v1`; digests in `signing-service/testdata/pdf/manifest.json`;
+accept/reject behavior asserted by `internal/pades` and `internal/corpus` tests.
+
 | Dimension | Fixture | Sign succeeds | Opens unchanged | Signature valid | Notes |
 |---|---|---:|---:|---:|---|
-| Classic xref table | Pending | — | — | — | |
-| Xref stream/object streams | Pending | — | — | — | |
-| Multiple pages | Pending | — | — | — | |
-| AcroForm | Pending | — | — | — | |
-| Existing unsigned signature field | Pending | — | — | — | |
+| Classic xref table | `accepted_minimal` | yes | yes | yes (both validators) | round-trips through `pades.Sign`/`VerifyLocal` |
+| Classic xref + Info dict | `accepted_with_info` | yes | yes | yes (both validators) | |
+| Xref stream / non-classic | `rejected_non_classic_xref` | reject | — | — | preflight fails closed |
+| Multiple pages | Pending | — | — | — | not yet in corpus |
+| AcroForm | `rejected_acroform` | reject | — | — | expected reject |
+| Existing unsigned signature field | `rejected_existing_signature` | reject | — | — | expected reject |
 | Existing prior signature | Pending | — | — | — | Must preserve prior revision validity |
-| Incremental updates | Pending | — | — | — | |
-| Encrypted PDF | Pending | — | — | — | Expected reject until policy exists |
-| Malformed/truncated PDF | Pending | — | — | — | Must fail safely |
-| Near upload-size limit | Pending | — | — | — | Memory/time bound required |
+| Incremental updates | `rejected_prior_incremental` | reject | — | — | trailer `/Prev` rejected |
+| Hybrid reference | `rejected_hybrid_reference` | reject | — | — | trailer `/XRefStm` rejected |
+| Encrypted PDF | `rejected_encrypted` | reject | — | — | Expected reject until policy exists |
+| Malformed/truncated PDF | `rejected_malformed_xref`, `rejected_missing_header` | reject | — | — | Must fail safely |
+| Near upload-size limit | `corpus.Oversized` (>25 MiB) | reject | — | — | Memory/time bound enforced |
 
 ## Credential and platform matrix
 
