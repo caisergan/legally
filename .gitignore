@@ -21,6 +21,27 @@ node_modules/
 web/dist/
 dist/
 
+# E-imza intake snapshot (selected source is copied under signing-service/third_party)
+/eimza-go-main/
+
+# Signing service runtime and sensitive test state
+signing-service/data/
+signing-service/state/
+signing-service/credentials/
+signing-service/testdata/tokens/
+signing-service/testdata/private/
+signing-service/*.sock
+signing-service/**/*.sock
+signing-service/*.test
+signing-service/coverage*.out
+signing-service/sbom*.json
+*.p12
+*.pfx
+*.key
+*.pem
+softhsm2.conf
+*.token
+
 # Editor / OS
 .DS_Store
 *.swp
