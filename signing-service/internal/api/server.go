@@ -1,10 +1,12 @@
 package api
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net"
 	"net/http"
 	"os"
@@ -12,6 +14,8 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/caisergan/legally/signing-service/internal/artifacts"
+	"github.com/caisergan/legally/signing-service/internal/commandauth"
 	"github.com/caisergan/legally/signing-service/internal/config"
 	"github.com/caisergan/legally/signing-service/internal/credentials"
 	"github.com/caisergan/legally/signing-service/internal/errcodes"
@@ -38,6 +42,9 @@ type Server struct {
 	credentialInventory CredentialInventory
 	jobs                *jobs.Service
 	coordinator         *signer.Coordinator
+	broker              *artifacts.Broker
+	maxArtifactBytes    int64
+	verifier            *commandauth.Verifier
 }
 
 func NewServer(cfg config.Config) *Server {
@@ -48,21 +55,52 @@ func NewServer(cfg config.Config) *Server {
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /v1/health", server.handleHealth)
 	mux.HandleFunc("GET /v1/credentials", server.handleCredentials)
+	mux.HandleFunc("PUT /v1/artifacts/{artifact_id}", server.handleArtifactPut)
 	mux.HandleFunc("POST /v1/jobs", server.handleCreateJob)
 	mux.HandleFunc("GET /v1/commands/{command_id}", server.handleCommandStatus)
 	mux.HandleFunc("GET /v1/jobs/{job_id}", server.handleGetJob)
 	mux.HandleFunc("GET /v1/jobs/{job_id}/events", server.handleJobEvents)
+	mux.HandleFunc("GET /v1/jobs/{job_id}/output", server.handleJobOutput)
 	mux.HandleFunc("GET /v1/jobs/{job_id}/pin-challenge", server.handlePINChallenge)
 	mux.HandleFunc("POST /v1/jobs/{job_id}/authorize", server.handleAuthorize)
 	mux.HandleFunc("POST /v1/jobs/{job_id}/cancel", server.handleCancelJob)
 	server.httpServer = &http.Server{
-		Handler:           mux,
+		Handler:           server.authWrap(mux),
 		ReadHeaderTimeout: 5 * time.Second,
-		ReadTimeout:       10 * time.Second,
-		WriteTimeout:      10 * time.Second,
+		ReadTimeout:       30 * time.Second,
+		WriteTimeout:      30 * time.Second,
 		IdleTimeout:       30 * time.Second,
 	}
 	return server
+}
+
+// authWrap verifies asymmetric command authentication when a verifier is
+// installed. /v1/health stays open for local readiness. It buffers the body so
+// the signature can be checked over the exact received bytes before the handler
+// reads them; the buffer is bounded by the artifact size limit.
+func (s *Server) authWrap(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(response http.ResponseWriter, request *http.Request) {
+		if s.verifier == nil || (request.Method == http.MethodGet && request.URL.Path == "/v1/health") {
+			next.ServeHTTP(response, request)
+			return
+		}
+		limit := s.maxArtifactBytes
+		if limit <= 0 {
+			limit = 1 << 20
+		}
+		body, err := io.ReadAll(io.LimitReader(request.Body, limit+1))
+		_ = request.Body.Close()
+		if err != nil || int64(len(body)) > limit {
+			writeError(response, newSafeError(http.StatusRequestEntityTooLarge, errcodes.InputRejected, "request body too large"))
+			return
+		}
+		if err := s.verifier.Verify(request.Method, request.URL.Path, request.URL.RawQuery, body, request.Header); err != nil {
+			writeError(response, newSafeError(http.StatusUnauthorized, errcodes.Unauthorized, "command authentication failed"))
+			return
+		}
+		request.Body = io.NopCloser(bytes.NewReader(body))
+		next.ServeHTTP(response, request)
+	})
 }
 
 func (s *Server) Handler() http.Handler {
@@ -85,6 +123,19 @@ func (s *Server) SetCredentialInventory(inventory CredentialInventory) {
 func (s *Server) SetJobService(service *jobs.Service, coordinator *signer.Coordinator) {
 	s.jobs = service
 	s.coordinator = coordinator
+}
+
+// SetArtifactBroker wires the in-process artifact broker used by input ingest
+// and output egress, bounded by maxBytes per artifact.
+func (s *Server) SetArtifactBroker(broker *artifacts.Broker, maxBytes int64) {
+	s.broker = broker
+	s.maxArtifactBytes = maxBytes
+}
+
+// SetCommandVerifier installs asymmetric command authentication. When set, every
+// route except GET /v1/health requires a valid signed command.
+func (s *Server) SetCommandVerifier(verifier *commandauth.Verifier) {
+	s.verifier = verifier
 }
 
 func (s *Server) ListenAndServe(ctx context.Context) error {

@@ -17,6 +17,7 @@ import (
 
 	"github.com/caisergan/legally/signing-service/internal/api"
 	"github.com/caisergan/legally/signing-service/internal/assembly"
+	"github.com/caisergan/legally/signing-service/internal/commandauth"
 	"github.com/caisergan/legally/signing-service/internal/config"
 	"github.com/caisergan/legally/signing-service/internal/jobs"
 	"github.com/caisergan/legally/signing-service/internal/persistence"
@@ -64,6 +65,18 @@ func main() {
 	})
 	server.SetCredentialInventory(components.Registry)
 	server.SetJobService(components.Jobs, components.Coordinator)
+	server.SetArtifactBroker(components.Broker, cfg.MaxArtifactBytes)
+
+	if cfg.CommandPubKeys != "" {
+		keys, err := commandauth.ParsePinnedKeys(cfg.CommandPubKeys)
+		if err != nil {
+			log.Fatalf("parse command pubkeys: %v", err)
+		}
+		server.SetCommandVerifier(commandauth.NewVerifier(keys, cfg.CommandSkew))
+		log.Printf("command authentication enabled: %d pinned key(s)", len(keys))
+	} else {
+		log.Print("command authentication disabled (no SIGNERD_COMMAND_PUBKEYS): relying on the private socket")
+	}
 
 	log.Printf("starting yargi-signerd version=%s mode=%s transport=%s module=%s", cfg.Version, cfg.Mode, cfg.Transport, cfg.ModuleAlias)
 	if err := server.ListenAndServe(ctx); err != nil {

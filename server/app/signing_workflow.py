@@ -16,8 +16,10 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from . import signing_state as st
+from .artifact_store import ArtifactStore
 from .models import (
     SigningApproval,
+    SigningArtifact,
     SigningCertificate,
     SigningOutbox,
     SigningRequest,
@@ -179,12 +181,17 @@ async def enqueue_cancel(db: AsyncSession, request: SigningRequest) -> SigningOu
 
 
 async def dispatch_outbox(
-    db: AsyncSession, client: SignerClient, outbox: SigningOutbox
+    db: AsyncSession,
+    client: SignerClient,
+    outbox: SigningOutbox,
+    store: ArtifactStore | None = None,
 ) -> None:
     _guard_command_type(outbox.command_type)
     payload = json.loads(outbox.payload_json)
     try:
         if outbox.command_type == "create_job":
+            if store is not None:
+                await _push_input(db, client, store, payload)
             result = await client.create_job(outbox.command_id, payload)
         elif outbox.command_type == "cancel":
             result = await client.cancel_job(payload.get("job_id", ""))
@@ -212,6 +219,47 @@ async def _reconcile_create(client: SignerClient, outbox: SigningOutbox) -> dict
     return await client.get_command(outbox.command_id)
 
 
+async def _push_input(
+    db: AsyncSession, client: SignerClient, store: ArtifactStore, payload: dict
+) -> None:
+    """Stream the input artifact's bytes to signerd before the job is created."""
+    input_ref = payload.get("input") or {}
+    artifact_id = str(input_ref.get("artifact_id", ""))
+    artifact = await db.get(SigningArtifact, artifact_id)
+    if artifact is None or not artifact.storage_key:
+        raise OutboxError("input artifact bytes unavailable for transfer")
+    data = await store.read_all(artifact.storage_key)
+    await client.put_input(artifact_id, data, str(input_ref.get("sha256", "")))
+
+
+async def _single_chunk(data: bytes):
+    yield data
+
+
+async def _pull_output(
+    db: AsyncSession,
+    client: SignerClient,
+    store: ArtifactStore,
+    request: SigningRequest,
+    max_output_bytes: int,
+) -> None:
+    """Retrieve a completed job's signed output and persist it locally."""
+    if not request.output_artifact_id:
+        return
+    data, _sha = await client.get_output(request.signer_job_id)
+    stored = await store.store_stream(
+        _single_chunk(data), max_output_bytes or (50 * 1024 * 1024)
+    )
+    output = await db.get(SigningArtifact, request.output_artifact_id)
+    if output is not None:
+        output.storage_key = stored.storage_key
+        output.sha256 = stored.sha256
+        output.byte_count = stored.byte_count
+        output.preflight_status = "accepted"
+    request.output_sha256 = stored.sha256
+    request.output_byte_count = stored.byte_count
+
+
 def _schedule_retry(outbox: SigningOutbox, *, code: str, detail: str) -> None:
     outbox.attempts += 1
     outbox.status = "reconcile"
@@ -233,7 +281,11 @@ async def _project_result(db: AsyncSession, outbox: SigningOutbox, result: dict)
 
 
 async def project_events(
-    db: AsyncSession, client: SignerClient, request: SigningRequest
+    db: AsyncSession,
+    client: SignerClient,
+    request: SigningRequest,
+    store: ArtifactStore | None = None,
+    max_output_bytes: int = 0,
 ) -> int:
     """Project durable signer events onto the request. Returns events applied."""
     if not request.signer_job_id:
@@ -263,6 +315,8 @@ async def project_events(
             if projected == st.COMPLETED:
                 request.completed_at = utcnow()
                 request.retained = True
+                if store is not None and not request.output_sha256:
+                    await _pull_output(db, client, store, request, max_output_bytes)
         request.signer_event_cursor = signer_seq
         applied += 1
     await db.flush()

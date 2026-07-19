@@ -39,6 +39,7 @@ const (
 	IndependentValidationFailed    Code = "INDEPENDENT_VALIDATION_FAILED"
 	OutputStoreFailed              Code = "OUTPUT_STORE_FAILED"
 	ServiceUnavailable             Code = "SERVICE_UNAVAILABLE"
+	Unauthorized                   Code = "UNAUTHORIZED"
 )
 
 // known holds every recognized safe code so callers can assert that no
@@ -52,7 +53,7 @@ var known = map[Code]struct{}{
 	AuthorizationLostBeforeSigning: {}, AuthorizationDeliveryUnknown: {}, TokenLocked: {},
 	TokenSessionFailed: {}, SigningFailedPreOperation: {}, SigningOutcomeUnknown: {},
 	FinalizationFailed: {}, LocalVerificationFailed: {}, IndependentValidationFailed: {},
-	OutputStoreFailed: {}, ServiceUnavailable: {},
+	OutputStoreFailed: {}, ServiceUnavailable: {}, Unauthorized: {},
 }
 
 // IsKnown reports whether c is a recognized safe failure code. The empty code

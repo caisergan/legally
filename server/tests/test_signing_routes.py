@@ -48,6 +48,14 @@ class FakeSigner:
             "expires_at": "2026-07-19T12:01:30Z",
         }
 
+    async def put_input(self, artifact_id, data, sha256_hex):
+        self.pushed = getattr(self, "pushed", {})
+        self.pushed[artifact_id] = (len(data), sha256_hex)
+        return {"artifact_id": artifact_id, "sha256": sha256_hex, "byte_count": len(data)}
+
+    async def get_output(self, job_id):
+        return self.output.get(job_id, (b"%PDF-signed", "")) if hasattr(self, "output") else (b"%PDF-signed", "")
+
     async def create_job(self, command_id, payload):
         return {"id": payload["job_id"], "state": "QUEUED", "version": 1, "event_sequence": 1}
 

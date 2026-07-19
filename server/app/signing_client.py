@@ -241,6 +241,47 @@ class SignerClient:
             headers={"Idempotency-Key": command_id},
         )
 
+    async def put_input(self, artifact_id: str, data: bytes, sha256_hex: str) -> dict:
+        """Stream an input artifact's bytes to signerd before job creation.
+
+        The command signature covers the raw body; signerd re-verifies the
+        declared SHA-256 before storing. Document bytes are never logged.
+        """
+        path = f"/v1/artifacts/{artifact_id}"
+        headers = {
+            **self._signer.sign("PUT", path, "", data),
+            "Content-Type": "application/pdf",
+            "X-Artifact-Sha256": sha256_hex,
+            "X-Artifact-Byte-Count": str(len(data)),
+        }
+        try:
+            response = await self._client.request(
+                "PUT", f"{self._base_url}{path}", content=data, headers=headers
+            )
+        except (httpx.ConnectError, httpx.ConnectTimeout, FileNotFoundError) as error:
+            raise SignerUnreached(str(error)) from error
+        except httpx.TransportError as error:
+            raise SignerUnavailable(str(error)) from error
+        if response.status_code >= 400:
+            raise _safe_signer_error(response)
+        return response.json()
+
+    async def get_output(self, job_id: str) -> tuple[bytes, str]:
+        """Fetch a finished job's signed output bytes and their SHA-256 header."""
+        path = f"/v1/jobs/{job_id}/output"
+        headers = self._signer.sign("GET", path, "", b"")
+        try:
+            response = await self._client.request(
+                "GET", f"{self._base_url}{path}", headers=headers
+            )
+        except (httpx.ConnectError, httpx.ConnectTimeout, FileNotFoundError) as error:
+            raise SignerUnreached(str(error)) from error
+        except httpx.TransportError as error:
+            raise SignerUnavailable(str(error)) from error
+        if response.status_code >= 400:
+            raise _safe_signer_error(response)
+        return response.content, response.headers.get("X-Output-Sha256", "")
+
     async def get_command(self, command_id: str) -> dict:
         return await self._request("GET", f"/v1/commands/{command_id}")
 

@@ -35,6 +35,9 @@ type Config struct {
 	ChallengeKeyPath  string
 	ChallengeKeyID    string
 	SupervisorKeyPath string
+	CommandPubKeys    string
+	CommandSkew       time.Duration
+	MaxArtifactBytes  int64
 	PINWindow         time.Duration
 	PlanTTL           time.Duration
 	AuthorizationTTL  time.Duration
@@ -70,6 +73,14 @@ func LoadFromEnv() (Config, error) {
 	if err != nil {
 		return Config{}, err
 	}
+	commandSkew, err := parseDurationSeconds("SIGNERD_COMMAND_SKEW_SECONDS", 30)
+	if err != nil {
+		return Config{}, err
+	}
+	maxArtifactBytes, err := parsePositiveInt("SIGNERD_MAX_ARTIFACT_BYTES", 26_214_400)
+	if err != nil {
+		return Config{}, err
+	}
 
 	stateDir := strings.TrimSpace(os.Getenv("SIGNERD_STATE_DIR"))
 	databasePath := strings.TrimSpace(os.Getenv("SIGNERD_DATABASE"))
@@ -90,6 +101,9 @@ func LoadFromEnv() (Config, error) {
 		ChallengeKeyPath:  strings.TrimSpace(os.Getenv("SIGNERD_CHALLENGE_KEY")),
 		ChallengeKeyID:    envOrDefault("SIGNERD_CHALLENGE_KEY_ID", "challenge-1"),
 		SupervisorKeyPath: strings.TrimSpace(os.Getenv("SIGNERD_SUPERVISOR_KEY")),
+		CommandPubKeys:    strings.TrimSpace(os.Getenv("SIGNERD_COMMAND_PUBKEYS")),
+		CommandSkew:       commandSkew,
+		MaxArtifactBytes:  int64(maxArtifactBytes),
 		PINWindow:         pinWindow,
 		PlanTTL:           planTTL,
 		AuthorizationTTL:  authorizationTTL,

@@ -387,7 +387,7 @@ async def get_request(request_id: str, user: CurrentUser, db: Database) -> dict:
 @router.post("/requests/{request_id}/confirm", status_code=status.HTTP_202_ACCEPTED,
              dependencies=[Enabled, Guards])
 async def confirm_request(
-    request_id: str, body: ConfirmBody, user: CurrentUser, db: Database, signer: Signer
+    request_id: str, body: ConfirmBody, user: CurrentUser, db: Database, signer: Signer, store: Store
 ) -> dict:
     request = await _owned_request(db, request_id, user)
     if request.state != st.AWAITING_OWNER_CONFIRMATION:
@@ -428,19 +428,21 @@ async def confirm_request(
         request_id=request.id, signer_job_id=request.signer_job_id,
     )
     await db.commit()
-    await wf.dispatch_outbox(db, signer, outbox)
+    await wf.dispatch_outbox(db, signer, outbox, store=store)
     await db.commit()
     return _request_out(request)
 
 
 @router.get("/requests/{request_id}/events", dependencies=[Enabled])
 async def request_events(
-    request_id: str, user: CurrentUser, db: Database, signer: Signer, after: int = 0
+    request_id: str, user: CurrentUser, db: Database, signer: Signer, store: Store, after: int = 0
 ) -> dict:
     request = await _owned_request(db, request_id, user)
     if request.signer_job_id:
         try:
-            await wf.project_events(db, signer, request)
+            await wf.project_events(
+                db, signer, request, store=store, max_output_bytes=settings.signing_max_output_bytes
+            )
             await db.commit()
         except SignerUnreached:
             pass  # serve durable events; signer temporarily unreachable
@@ -489,13 +491,15 @@ async def pin_challenge(
 @router.post("/requests/{request_id}/pin-envelope", status_code=status.HTTP_202_ACCEPTED,
              dependencies=[Enabled, Guards])
 async def pin_envelope(
-    request_id: str, body: PinEnvelopeBody, user: CurrentUser, db: Database, signer: Signer
+    request_id: str, body: PinEnvelopeBody, user: CurrentUser, db: Database, signer: Signer, store: Store
 ) -> dict:
     request = await _owned_request(db, request_id, user)
     # Reconcile durable signer state before accepting an envelope.
     if request.signer_job_id:
         try:
-            await wf.project_events(db, signer, request)
+            await wf.project_events(
+                db, signer, request, store=store, max_output_bytes=settings.signing_max_output_bytes
+            )
         except SignerUnreached:
             pass
     if request.pin_relay_status == "pending_unknown":
