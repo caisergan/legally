@@ -1,0 +1,17 @@
+{
+  "version": "yargi-pdf-corpus-v1",
+  "digests": {
+    "accepted_minimal": "d20b4ab2746c9667baf58562b4df8aa8db6d7bfad0f51afa03509965f3a04173",
+    "accepted_with_info": "288dff7f7539ba5d3685e9f051bd3bd83f3256a694fa048633743389b2ffb703",
+    "rejected_acroform": "d71822786e4224a5531009a53efaeb5373b6756c1b24f9ba21d467ff2bdb8a80",
+    "rejected_empty": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "rejected_encrypted": "778e3a64e9d97e6aac8a66b1c7a7e51063069722b3f8dc66b6921c7b1993b242",
+    "rejected_existing_signature": "0874dcf6553a9b7f5f3120b8e1640b85abdf131e1ef0426fd4c38123c3c87509",
+    "rejected_hybrid_reference": "18203d6a677f830157b816d1c6369b7a163106582e9c09e1458e28cbab11f2ad",
+    "rejected_malformed_xref": "e4b3625715f83b4bae0521e66ae275d8ece6a363209633aa970c49c52ad8aeca",
+    "rejected_missing_header": "c6051c4c6deecaf564648a4766cd615a0b08cb73d7b9c82e94f90fb0369e7901",
+    "rejected_non_catalog_root": "2aa7e99acc2f39b24c5fe686e8e56397985619ab77c8cf06790b4927d1f5f59e",
+    "rejected_non_classic_xref": "2fb1e04455a4e0315c0ff50f7aee5bdd89f913b90b383a1426a702de9f0ed945",
+    "rejected_prior_incremental": "abb82291771747f22fc00006538166581d067e9ee1095e68fd778530d4a1b54b"
+  }
+}

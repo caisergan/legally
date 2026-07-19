@@ -74,11 +74,23 @@ func (v ExternalValidator) verifyExecutable() error {
 	return nil
 }
 
+// normalizeOutcome fails closed: any run error or negative marker yields
+// "invalid", and a positive "valid" marker counts only when no negative marker
+// is present (so "Signature is Invalid" is never mistaken for valid).
 func normalizeOutcome(runErr error, output string) string {
 	if runErr != nil {
 		return "invalid"
 	}
-	if strings.Contains(strings.ToLower(output), "valid") {
+	lower := strings.ToLower(output)
+	for _, negative := range []string{"invalid", "not valid", "verification failed", "failed", "no signature"} {
+		if strings.Contains(lower, negative) {
+			return "invalid"
+		}
+	}
+	if strings.Contains(lower, "indeterminate") {
+		return "indeterminate"
+	}
+	if strings.Contains(lower, "valid") {
 		return "valid"
 	}
 	return "indeterminate"

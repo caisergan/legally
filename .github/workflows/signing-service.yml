@@ -36,6 +36,22 @@ jobs:
         run: go test -race ./...
       - name: Vet
         run: go vet ./...
+      - name: Fuzz smoke (Phase 1B parser/preflight/verify robustness)
+        run: |
+          go test ./third_party/eimza-go/pdf/ -run='^$' -fuzz='^FuzzParse$' -fuzztime=20s
+          go test ./third_party/eimza-go/pdf/ -run='^$' -fuzz='^FuzzContainsName$' -fuzztime=10s
+          go test ./third_party/eimza-go/pdf/ -run='^$' -fuzz='^FuzzFindDictionaryEnd$' -fuzztime=10s
+          go test ./internal/pades/ -run='^$' -fuzz='^FuzzVerifyLocal$' -fuzztime=20s
+          go test ./internal/pades/ -run='^$' -fuzz='^FuzzSignPreflight$' -fuzztime=20s
+      - name: Install independent PAdES validators
+        run: |
+          sudo apt-get update && sudo apt-get install -y poppler-utils
+          python3 -m venv /tmp/pyhanko-venv
+          /tmp/pyhanko-venv/bin/pip install --quiet -r tools/requirements.txt
+      - name: Two independent validator matrix + trust outcomes
+        env:
+          YARGI_PYHANKO_PYTHON: /tmp/pyhanko-venv/bin/python
+        run: go test ./internal/validation/ -run 'Matrix|TrustOutcome' -v
       - name: Enforce selected-fork dependency boundary
         run: |
           deps=$(go list -deps -f '{{if not .Standard}}{{.ImportPath}}{{end}}' ./... | sort -u)
