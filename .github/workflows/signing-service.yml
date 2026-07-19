@@ -1,0 +1,62 @@
+name: Signing service
+
+on:
+  push:
+    paths:
+      - "signing-service/**"
+      - "docs/signing/**"
+      - "docs/tasks/EIMZA_BUILD_LEDGER.md"
+      - ".github/workflows/signing-service.yml"
+  pull_request:
+    paths:
+      - "signing-service/**"
+      - "docs/signing/**"
+      - "docs/tasks/EIMZA_BUILD_LEDGER.md"
+      - ".github/workflows/signing-service.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: signing-service
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: signing-service/go.mod
+      - name: Check formatting
+        run: test -z "$(gofmt -l .)"
+      - name: Unit tests
+        run: go test ./...
+      - name: Race tests
+        run: go test -race ./...
+      - name: Vet
+        run: go vet ./...
+      - name: Enforce selected-fork dependency boundary
+        run: |
+          deps=$(go list -deps -f '{{if not .Standard}}{{.ImportPath}}{{end}}' ./... | sort -u)
+          printf '%s\n' "$deps"
+          if printf '%s\n' "$deps" | grep -v '^github.com/caisergan/legally/signing-service' | grep -q .; then
+            exit 1
+          fi
+      - name: Enforce creation-policy exclusions
+        run: |
+          if grep -RInE --include='*.go' --exclude='*_test.go' 'crypto/md5|crypto/sha1|RSA_PSS|ECDSA|DSA|kamusm|timestamp|pkcs11|miekg' third_party/eimza-go; then
+            exit 1
+          fi
+      - name: Install govulncheck
+        run: go install golang.org/x/vuln/cmd/govulncheck@v1.6.0
+      - name: Vulnerability scan
+        run: govulncheck ./...
+      - name: Install CycloneDX generator
+        run: go install github.com/CycloneDX/cyclonedx-gomod/cmd/cyclonedx-gomod@v1.10.0
+      - name: Generate SBOM
+        run: cyclonedx-gomod mod -json -output sbom.cdx.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: signing-service-sbom
+          path: signing-service/sbom.cdx.json

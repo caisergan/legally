@@ -1,0 +1,20 @@
+# Reference only. The first implementation reads equivalent SIGNERD_* environment variables.
+enabled: false
+environment: development # development | test | production
+mode: disabled           # disabled | softhsm | hardware
+transport: unix
+socket_path: /run/yargi-signerd/signerd.sock
+shutdown_timeout_seconds: 10
+
+# Durable signer journal (required when enabled). SIGNERD_STATE_DIR / SIGNERD_DATABASE.
+# The parent directory is created 0700 and the database file 0600.
+state_dir: /var/lib/yargi-signerd
+database: /var/lib/yargi-signerd/signerd.db
+
+# Signer-owned PKCS#11 module allowlist. SIGNERD_CONFIG. See modules.example.yaml.
+config: /etc/yargi-signerd/modules.yaml
+
+policy:
+  version: pades-b-b-rsa-sha256-v1
+  profile: PAdES_BASELINE_B_B
+  algorithm: RSA_PKCS1_SHA256

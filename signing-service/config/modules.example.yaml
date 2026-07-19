@@ -1,0 +1,13 @@
+# Signer-owned PKCS#11 module allowlist (plan §5.1). Readable only by the signer
+# service account. Callers reference modules by alias; API-supplied module paths
+# are never honored. Every path must be absolute and canonical; sha256 must be
+# 64 lowercase hex characters; modes are a subset of [test, hardware].
+pkcs11_modules:
+  - alias: softhsm-test
+    path: /approved/path/libsofthsm2.so
+    sha256: 0000000000000000000000000000000000000000000000000000000000000000
+    modes: [test]
+  - alias: approved-token-driver
+    path: /approved/path/vendor-pkcs11.so
+    sha256: 1111111111111111111111111111111111111111111111111111111111111111
+    modes: [hardware]
