@@ -35,6 +35,11 @@ signing-service/**/*.sock
 signing-service/*.test
 signing-service/coverage*.out
 signing-service/sbom*.json
+
+# FastAPI signing runtime: private artifact bytes, sockets, and command keys
+server/var/
+server/**/*.sock
+server/keys/
 *.p12
 *.pfx
 *.key
