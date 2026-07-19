@@ -47,6 +47,38 @@ class Settings(BaseSettings):
     # --- document cache ---
     doc_cache_ttl_days: int = 30
 
+    # --- signing (e-imza) — every flag disabled by default ---
+    signing_enabled: bool = False
+    signing_kill_switch: bool = False
+    signing_mode: str = "softhsm"
+    signing_test_only: bool = True
+    # Private artifact + runtime state root (never inside `data/` / SQLite).
+    signing_state_dir: Path = BASE_DIR / "var" / "signing"
+    signing_max_upload_bytes: int = 26_214_400  # 25 MiB
+    signing_max_output_bytes: int = 52_428_800  # 50 MiB
+    signing_input_retention_hours: int = 720  # 30 days
+    signing_pin_window_seconds: int = 90
+    signing_approval_ttl_seconds: int = 300
+    signing_capability_ttl_seconds: int = 30
+    signing_download_ttl_seconds: int = 120
+    # Signer / broker private transport.
+    signing_signer_socket: Path = Path("/run/yargi/signerd.sock")
+    signing_broker_socket: Path = Path("/run/yargi/signing-broker.sock")
+    signing_transport_group: str = "yargi-signing"
+    signing_service_uid: int | None = None  # FastAPI service account UID
+    signing_signer_uid: int | None = None  # signerd service account UID (broker allowlist)
+    signing_clock_skew_seconds: int = 30
+    signing_request_timeout_seconds: float = 10.0
+    # Command-authentication keys (Ed25519). FastAPI signs signer commands; the
+    # broker verifies pinned signerd command keys. Values are configuration
+    # paths/pins, never secrets embedded here.
+    signing_command_key_path: Path | None = None
+    signing_command_key_id: str = "fastapi-cmd-1"  # kid FastAPI signs signer commands with
+    signing_signer_command_pubkeys: str = ""  # "kid:hex,kid:hex" pinned signerd keys
+    signing_challenge_pubkeys: str = ""  # pinned signerd challenge-verification keyset
+    signing_capability_secret: str = ""  # broker capability HMAC secret (required when enabled)
+    signing_capability_key_id: str = "broker-cap-1"
+
 
 settings = Settings()
 settings.database_path.parent.mkdir(parents=True, exist_ok=True)

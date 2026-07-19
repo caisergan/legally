@@ -19,6 +19,13 @@ from ..models import (
     Message,
     Search,
     SearchResultSnapshot,
+    SigningApproval,
+    SigningArtifact,
+    SigningCertificateAssignment,
+    SigningDownloadAuthorization,
+    SigningOutbox,
+    SigningRequest,
+    SigningRequestEvent,
     UsageDaily,
     User,
     utcnow,
@@ -117,6 +124,20 @@ async def export_account(user: CurrentUser, db: Database) -> dict[str, Any]:
             select(UsageDaily)
             .where(UsageDaily.user_id == user.id)
             .order_by(UsageDaily.day)
+        )
+    ).all()
+    signing_requests = (
+        await db.scalars(
+            select(SigningRequest)
+            .where(SigningRequest.owner_id == user.id)
+            .order_by(SigningRequest.created_at)
+        )
+    ).all()
+    signing_artifacts = (
+        await db.scalars(
+            select(SigningArtifact)
+            .where(SigningArtifact.owner_id == user.id)
+            .order_by(SigningArtifact.created_at)
         )
     ).all()
 
@@ -228,6 +249,39 @@ async def export_account(user: CurrentUser, db: Database) -> dict[str, Any]:
             }
             for usage in usage_rows
         ],
+        # Safe signing metadata only. No document bytes, PIN, capability, or path.
+        "signing_requests": [
+            {
+                "id": request.id,
+                "state": request.state,
+                "profile": request.profile,
+                "algorithm": request.algorithm,
+                "policy_version": request.policy_version,
+                "certificate_fingerprint_sha256": request.certificate_fingerprint_sha256,
+                "input_sha256": request.input_sha256,
+                "input_byte_count": request.input_byte_count,
+                "output_sha256": request.output_sha256,
+                "output_byte_count": request.output_byte_count,
+                "failure_code": request.failure_code,
+                "created_at": _iso(request.created_at),
+                "queued_at": _iso(request.queued_at),
+                "completed_at": _iso(request.completed_at),
+            }
+            for request in signing_requests
+        ],
+        "signing_artifacts": [
+            {
+                "id": artifact.id,
+                "kind": artifact.kind,
+                "display_filename": artifact.display_filename,
+                "mime_type": artifact.mime_type,
+                "byte_count": artifact.byte_count,
+                "sha256": artifact.sha256,
+                "created_at": _iso(artifact.created_at),
+                "expires_at": _iso(artifact.expires_at),
+            }
+            for artifact in signing_artifacts
+        ],
     }
 
 
@@ -278,6 +332,50 @@ async def delete_account(
     )
     if not password_matches:
         raise HTTPException(status_code=400, detail="Şifre hatalı")
+
+    # Retained completed signing evidence must never be cascade-deleted (§9.1).
+    retained = await db.scalar(
+        select(SigningRequest.id)
+        .where(SigningRequest.owner_id == user.id, SigningRequest.retained == True)  # noqa: E712
+        .limit(1)
+    )
+    retained_output = await db.scalar(
+        select(SigningArtifact.id)
+        .where(SigningArtifact.owner_id == user.id, SigningArtifact.retained == True)  # noqa: E712
+        .limit(1)
+    )
+    if retained is not None or retained_output is not None:
+        raise HTTPException(
+            status_code=409,
+            detail="Saklanan imza kayıtları bulunduğu için hesap silinemiyor.",
+        )
+
+    # Remove non-retained signing rows (owner FKs use RESTRICT, so purge first).
+    user_request_ids = select(SigningRequest.id).where(SigningRequest.owner_id == user.id)
+    await db.execute(
+        delete(SigningRequestEvent).where(
+            SigningRequestEvent.request_id.in_(user_request_ids)
+        )
+    )
+    await db.execute(
+        delete(SigningOutbox).where(SigningOutbox.request_id.in_(user_request_ids))
+    )
+    await db.execute(
+        delete(SigningApproval).where(SigningApproval.owner_id == user.id)
+    )
+    await db.execute(
+        delete(SigningDownloadAuthorization).where(
+            SigningDownloadAuthorization.owner_id == user.id
+        )
+    )
+    await db.execute(delete(SigningRequest).where(SigningRequest.owner_id == user.id))
+    await db.execute(
+        delete(SigningCertificateAssignment).where(
+            SigningCertificateAssignment.user_id == user.id
+        )
+    )
+    await db.execute(delete(SigningArtifact).where(SigningArtifact.owner_id == user.id))
+
     await db.delete(user)
     await db.commit()
     response = Response(status_code=status.HTTP_204_NO_CONTENT)

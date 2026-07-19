@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from typing import Any
@@ -16,6 +17,7 @@ from .api import api_router
 from .config import settings
 from .db import init_db
 from .mcp_bridge import bridge
+from .signing_client import parse_pinned_public_keys
 
 
 class Utf8JsonResponse(JSONResponse):
@@ -41,9 +43,30 @@ class SpaStaticFiles(StaticFiles):
         return await super().get_response("index.html", scope)
 
 
+def validate_signing_startup() -> None:
+    """Startup invariants (§11.4). Disabled by default: inert, no signer I/O."""
+    if not settings.signing_enabled:
+        return
+    problems: list[str] = []
+    if not settings.signing_capability_secret:
+        problems.append("signing_capability_secret is required when signing is enabled")
+    if settings.signing_command_key_path is None:
+        problems.append("signing_command_key_path is required when signing is enabled")
+    try:
+        parse_pinned_public_keys(settings.signing_signer_command_pubkeys)
+        parse_pinned_public_keys(settings.signing_challenge_pubkeys)
+    except ValueError as error:
+        problems.append(f"invalid pinned signing key: {error}")
+    if problems:
+        raise RuntimeError("signing configuration invalid: " + "; ".join(problems))
+    settings.signing_state_dir.mkdir(parents=True, exist_ok=True)
+    os.chmod(settings.signing_state_dir, 0o700)
+
+
 @asynccontextmanager
 async def lifespan(_: FastAPI) -> AsyncIterator[None]:
     await init_db()
+    validate_signing_startup()
     await bridge.start()
     try:
         validate_registry(bridge)
